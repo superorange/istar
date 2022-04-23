@@ -91,9 +91,3 @@ insert into t_video(uuid, video_id, video_hash, video_url, video_title, video_cr
 values ('uuid-001', 'video-id-006', 'video_hash-001', 'video_url-001', 'video_title-001', 1500000000, 1500000000,
         1500000000,20);
 
-
-
-select *
-from t_video tv
-where tv.video_title like '%title%'
-order by tv.video_likes desc;
