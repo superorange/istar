@@ -6,4 +6,8 @@
         FROM t_user
         limit #{pageIndex},#{pageSize}
     </select>
+    <select id="selectAll" resultType="com.example.istar.entity.User">
+        select *
+        from t_user tu
+    </select>
 </mapper>

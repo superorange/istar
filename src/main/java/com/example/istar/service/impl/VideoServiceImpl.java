@@ -2,7 +2,7 @@ package com.example.istar.service.impl;
 
 import com.example.istar.entity.Video;
 import com.example.istar.mapper.VideoMapper;
-import com.example.istar.model.VideoQueryModel;
+import com.example.istar.dto.VideoQueryDTO;
 import com.example.istar.service.IVideoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
         return baseMapper.getVideoByVideoId(videoId);
     }
 
-    public List<Video> getVideosByKeyword(VideoQueryModel model) {
+    public List<Video> getVideosByKeyword(VideoQueryDTO model) {
         return baseMapper.getVideosByKeyword(model.getKeyword(), model.getLimitIndex(), model.getPageSize());
     }
 

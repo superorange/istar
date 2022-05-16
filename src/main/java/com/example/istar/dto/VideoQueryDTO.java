@@ -1,12 +1,10 @@
-package com.example.istar.model;
-
-import lombok.Data;
+package com.example.istar.dto;
 
 /**
  * @author tian
  */
 
-public class VideoQueryModel extends PageModel {
+public class VideoQueryDTO extends PageDTO {
     public String getKeyword() {
         return keyword;
     }

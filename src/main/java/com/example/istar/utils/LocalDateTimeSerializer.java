@@ -1,8 +1,7 @@
-package com.example.istar.configuration;
+package com.example.istar.utils;
 
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.context.annotation.Configuration;
 
 import java.lang.reflect.Type;
@@ -24,9 +23,7 @@ public class LocalDateTimeSerializer implements ObjectSerializer {
                 Long seconds = (Long) object;
                 LocalDateTime localDateTime = LocalDateTime.ofEpochSecond(seconds / 1000, 0, ZoneOffset.ofHours(8));
                 serializer.write(localDateTime);
-                return;
             }
-            throw new RuntimeException("date type exception");
         } else {
             serializer.out.writeNull();
         }

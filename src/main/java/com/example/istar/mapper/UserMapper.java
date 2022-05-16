@@ -18,5 +18,5 @@ import java.util.List;
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
     List<User> queryUserList(@Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSize);
-
+    List<User> selectAll();
 }

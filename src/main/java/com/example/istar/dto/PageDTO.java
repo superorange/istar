@@ -1,11 +1,9 @@
-package com.example.istar.model;
-
-import lombok.Data;
+package com.example.istar.dto;
 
 /**
  * @author tian
  */
-public class PageModel {
+public class PageDTO {
     private int pageIndex = 1;
     private int pageSize = 30;
 

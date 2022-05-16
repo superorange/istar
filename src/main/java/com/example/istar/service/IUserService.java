@@ -2,11 +2,6 @@ package com.example.istar.service;
 
 import com.example.istar.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.istar.mapper.UserMapper;
-import org.apache.ibatis.annotations.Param;
-
-import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * <p>
@@ -18,4 +13,7 @@ import java.util.List;
  */
 public interface IUserService extends IService<User> {
 
+    User validateUser(String username, String password);
+
+    User queryUserByUsername(String username);
 }

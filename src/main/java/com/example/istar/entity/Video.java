@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
 
-import com.example.istar.configuration.LocalDateTimeSerializer;
+import com.example.istar.utils.LocalDateTimeSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -96,16 +96,16 @@ public class Video implements Serializable {
     @ApiModelProperty("视频类型")
     private Integer videoType;
 
-    @ApiModelProperty("视频创建时间")
+    @ApiModelProperty(value = "视频创建时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long videoCreateTime;
 
-    @ApiModelProperty("视频更新时间")
+    @ApiModelProperty(value = "视频更新时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long videoUpdateTime;
 
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    @ApiModelProperty("视频删除时间")
+    @ApiModelProperty(value = "视频删除时间", dataType = "java.lang.String")
     private Long videoDeleteTime;
 
 
