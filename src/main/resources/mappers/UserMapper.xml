@@ -4,10 +4,35 @@
     <select id="queryUserList" resultType="com.example.istar.entity.User">
         SELECT *
         FROM t_user
-        limit #{pageIndex},#{pageSize}
+        where id >= (SELECT u.id
+                     FROM t_user u
+                     order by id
+                     limit 1 offset #{index})
+        order by id
+        limit #{size} offset 0;
     </select>
-    <select id="selectAll" resultType="com.example.istar.entity.User">
+    <select id="queryUser" resultType="com.example.istar.entity.User">
         select *
-        from t_user tu
+        from t_user u
+        where true
+        <if test="username !=null and username != '' ">
+            AND u.username = #{username}
+        </if>
+        <if test="email !=null and email != '' ">
+            AND u.email = #{email}
+        </if>
+        <if test="mobile !=null and mobile != '' ">
+            AND u.mobile = #{mobile}
+        </if>
+        <if test="uuid !=null and uuid != '' ">
+            AND u.uuid = #{uuid}
+        </if>
+        <if test="id !=null">
+            AND u.id = #{id}
+        </if>
+    </select>
+    <select id="queryTotal" resultType="java.lang.Long">
+        select count('id')
+        from t_user tu;
     </select>
 </mapper>

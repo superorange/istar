@@ -4,7 +4,7 @@ package com.example.istar.dto;
  * @author tian
  */
 
-public class VideoQueryDTO extends PageDTO {
+public class VideoQueryModel extends PageModel {
     public String getKeyword() {
         return keyword;
     }

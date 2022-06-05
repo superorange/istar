@@ -1,7 +1,10 @@
 package com.example.istar.service;
 
+import com.example.istar.dto.PageModel;
+import com.example.istar.dto.UserQueryModel;
 import com.example.istar.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.istar.utils.PageWrapper;
 
 /**
  * <p>
@@ -12,8 +15,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2022-04-18
  */
 public interface IUserService extends IService<User> {
+    User queryUser(UserQueryModel userQueryModel);
 
-    User validateUser(String username, String password);
-
-    User queryUserByUsername(String username);
+    PageWrapper<User> queryUsers(PageModel model, boolean hasTotal);
 }

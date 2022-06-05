@@ -1,14 +1,12 @@
 package com.example.istar.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.istar.dto.PageModel;
+import com.example.istar.dto.UserQueryModel;
 import com.example.istar.entity.User;
 import com.example.istar.mapper.UserMapper;
 import com.example.istar.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.istar.utils.PageWrapper;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -27,34 +25,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Resource
     private UserMapper userMapper;
 
-    public List<User> queryUserList(Integer pageIndex, Integer pageSize) {
-        return userMapper.queryUserList(pageIndex, pageSize);
-    }
-
-    public Page<User> queryUserListByMapper(Integer pageIndex, Integer pageSize) {
-        Page<User> page = new Page<>(pageIndex, pageSize);
-        return this.page(page, null);
-    }
-
-    public PageWrapper<User> queryByPageHelper(int pageIndex, int pageSize) {
-        com.github.pagehelper.Page<Object> objects = PageHelper.startPage(pageIndex, pageSize, true);
-        PageInfo<User> pageInfo = new PageInfo<>(userMapper.selectList(null));
-        objects.close();
-        return PageWrapper.wrap(pageInfo);
-    }
-
-
     @Override
-    public User validateUser(String username, String password) {
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, username).eq(User::getPassword,password);
-        return userMapper.selectOne(wrapper);
+    public PageWrapper<User> queryUsers(PageModel model, boolean hasTotal) {
+        List<User> users = userMapper.queryUserList(model.getPageIndex(), model.getPageSize());
+        Long total = (long) -1;
+        if (hasTotal) {
+            total = userMapper.queryTotal();
+        }
+        return PageWrapper.wrap(total, users);
     }
 
     @Override
+    public User queryUser(UserQueryModel userQueryModel) {
+        return userMapper.queryUser(userQueryModel);
+    }
+
     public User queryUserByUsername(String username) {
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, username);
-        return userMapper.selectOne(wrapper);
+        UserQueryModel queryModel = new UserQueryModel();
+        queryModel.setUsername(username);
+        return queryUser(queryModel);
     }
+
+    public User queryUserByEmail(String email) {
+        UserQueryModel queryModel = new UserQueryModel();
+        queryModel.setEmail(email);
+        return queryUser(queryModel);
+    }
+
+    public User queryUserById(Long id) {
+        UserQueryModel queryModel = new UserQueryModel();
+        queryModel.setId(id);
+        return queryUser(queryModel);
+    }
+
+    public User queryUserByUuid(String uuid) {
+        UserQueryModel queryModel = new UserQueryModel();
+        queryModel.setUuid(uuid);
+        return queryUser(queryModel);
+    }
+
 }

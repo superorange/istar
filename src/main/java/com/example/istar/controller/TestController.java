@@ -1,7 +1,7 @@
 package com.example.istar.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.example.istar.dto.PageDTO;
+import com.example.istar.dto.PageModel;
 import com.example.istar.service.impl.UserServiceImpl;
 import com.example.istar.utils.R;
 import org.springframework.stereotype.Controller;
@@ -35,8 +35,8 @@ public class TestController {
 
     @RequestMapping("/test2")
     @ResponseBody
-    public R<?> test2(PageDTO pageDTO) {
-        return R.ok(userService.queryByPageHelper(pageDTO.getPageIndex(), pageDTO.getPageSize()));
+    public R<?> test2(PageModel pageModel) {
+        return R.ok(userService.queryUsers(pageModel, false));
     }
 
     @GetMapping("/test3")

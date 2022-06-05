@@ -1,5 +1,6 @@
 package com.example.istar.mapper;
 
+import com.example.istar.dto.UserQueryModel;
 import com.example.istar.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,6 +18,9 @@ import java.util.List;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
-    List<User> queryUserList(@Param("pageIndex") Integer pageIndex, @Param("pageSize") Integer pageSize);
-    List<User> selectAll();
+    List<User> queryUserList(@Param("index") Integer index, @Param("size") Integer size);
+
+    User queryUser(UserQueryModel userQueryModel);
+
+    Long queryTotal();
 }

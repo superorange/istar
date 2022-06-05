@@ -9,8 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 @Service
 public class UserDetailServiceImpl implements UserDetailsService {
@@ -23,10 +22,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
         if (ObjectUtils.isEmpty(user)) {
             throw new UsernameNotFoundException(null);
         }
-        ///TODO 查询权限信息
-        List<String> strings = new ArrayList<>();
-        strings.add("ROLE_USER");
-        strings.add("ROLE_ROOT");
-        return new LoginUser(user, strings);
+        return new LoginUser(user, Arrays.asList(user.getRoles().split(",")));
     }
 }

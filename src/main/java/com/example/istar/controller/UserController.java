@@ -3,17 +3,15 @@ package com.example.istar.controller;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.crypto.digest.MD5;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.istar.dto.UserQueryModel;
 import com.example.istar.entity.User;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.dto.UserWrapper;
-import com.example.istar.dto.PageDTO;
+import com.example.istar.dto.PageModel;
 import com.example.istar.dto.RegisterDTO;
 import com.example.istar.model.LoginModel;
 import com.example.istar.service.impl.UserServiceImpl;
-import com.example.istar.utils.JwtUtil;
-import com.example.istar.utils.R;
-import com.example.istar.utils.RedisCache;
+import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,9 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * <p>
@@ -51,35 +47,38 @@ public class UserController {
 
     @PostMapping("/register")
     @ApiOperation(value = "用户注册", notes = "用户注册")
-    public R<UserWrapper> register(@RequestBody RegisterDTO dto) {
-        if (dto.checkOk()) {
-            QueryWrapper<User> wrapper = new QueryWrapper<>();
-            wrapper.eq("user_name", dto.getUsername());
-            User one = userService.getOne(wrapper);
-            if (one == null) {
-                User user = new User();
-                user.setUuid(UUID.randomUUID().toString(false));
-                user.setUsername(dto.getUsername());
-                user.setPassword(MD5.create().digestHex(dto.getPassword()));
-                user.setGmtCreate(System.currentTimeMillis());
-                user.setGmtModified(System.currentTimeMillis());
-                user.setRoles("role_common_user");
-                boolean save = userService.save(user);
-                if (save) {
-                    String token = JwtUtil.generateToken(user.getUuid());
-                    if (!ObjectUtils.isEmpty(token)) {
-                        LoginUser loginUser = new LoginUser(user, Arrays.asList(user.getRoles().split(",")));
-                        redisCache.setCacheObject(JwtUtil.REDIS_TOKEN_KEY + user.getUuid(), loginUser, JwtUtil.EXPIRE_TIME, JwtUtil.TIME_UNIT);
-                        return R.ok(new UserWrapper(token, user));
-                    }
-
-                }
-                return R.fail("注册失败,请稍后再试");
-            }
-            return R.fail("用户已存在");
+    public R<UserWrapper> register(@RequestBody RegisterDTO dto) throws Exp {
+        if (!dto.checkOk()) {
+            throw Exp.from(ResultCode.ERROR_PARAM);
         }
-        return R.fail("注册失败，请检查输入的信息");
+        User one = userService.queryUserByUsername(dto.getUsername());
+        if (one != null) {
+            throw Exp.from(ResultCode.USER_EXIST);
+        }
+        User user = generateUser(dto);
+        boolean save = userService.save(user);
+        if (!save) {
+            throw Exp.from(ResultCode.FAILED);
+        }
+        String token = JwtUtil.generateToken(user.getUuid());
+        if (ObjectUtils.isEmpty(token)) {
+            throw Exp.from(ResultCode.FAILED);
+        }
+        LoginUser loginUser = new LoginUser(user, Arrays.asList(user.getRoles().split(",")));
+        redisCache.setCacheObject(JwtUtil.REDIS_TOKEN_KEY + user.getUuid(), loginUser, JwtUtil.EXPIRE_TIME, JwtUtil.TIME_UNIT);
+        return R.ok(new UserWrapper(token, user));
 
+    }
+
+    private User generateUser(RegisterDTO dto) {
+        User user = new User();
+        user.setUuid(UUID.randomUUID().toString(false));
+        user.setUsername(dto.getUsername());
+        user.setPassword(MD5.create().digestHex(dto.getPassword()));
+        user.setGmtCreate(System.currentTimeMillis());
+        user.setGmtModified(System.currentTimeMillis());
+        user.setRoles("role_common_user");
+        return user;
     }
 
     @PostMapping("/login")
@@ -99,39 +98,42 @@ public class UserController {
 
     ///TODO hasRole 默认增加ROLE_前缀
     ///@PreAuthorize("hasAuthority('ROLE_ROOT1')")
-    @GetMapping("/getUserList")
-    @PreAuthorize("@userExpression.hasPermission()")
     @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
-    public R<List<User>> getUsers(PageDTO pageDTO) {
-        List<User> userCopies = userService.queryUserList(pageDTO.getLimitIndex(), pageDTO.getPageSize());
-        return R.ok(userCopies);
+    @PreAuthorize("@userExpression.isSuperAdmin()")
+    @GetMapping("/getUsers")
+    public R<PageWrapper<User>> getUsers(PageModel pageModel) {
+        PageWrapper<User> userPageWrapper = userService.queryUsers(pageModel, false);
+        return R.ok(userPageWrapper);
     }
 
-    @GetMapping("/getUserListByMapper")
-    @ApiOperation(value = "获取用户列表ByMapper", notes = "获取用户列表")
-    public R<List<User>> getUsersByMapper(PageDTO pageDTO) {
-        if (pageDTO.isLarge()) {
-            return R.ok(new ArrayList<>());
+    @ApiOperation(value = "获取单个用户信息", notes = "获取单个用户信息")
+    @PreAuthorize("@userExpression.isSuperAdmin()")
+    @GetMapping("/getUser")
+    public R<User> generateUser(UserQueryModel model) throws Exp {
+        if (model.checkIsNull()) {
+            throw Exp.from(ResultCode.ERROR_PARAM);
         }
-        Page<User> userPage = userService.queryUserListByMapper(pageDTO.getLimitIndex(), pageDTO.getPageSize());
-        return R.ok(userPage.getRecords());
+        User user = userService.queryUser(model);
+        return R.ok(user);
+
     }
 
-    @PostMapping("/updateUser")
+    @PatchMapping("/updateUser")
     @ApiOperation(value = "用户更新", notes = "用户更新", response = User.class)
-    public R<User> updateUser(@RequestBody RegisterDTO registerDTO) {
+    public R<User> updateUser(@RequestBody RegisterDTO registerDTO) throws Exp {
         if (registerDTO.checkOk()) {
-            return R.fail("登录失败，请检查输入信息");
+            throw Exp.from("登录失败，请检查输入信息");
         }
         QueryWrapper<User> wrapper = new QueryWrapper<>();
         wrapper.eq("user _name", registerDTO.getUsername());
         User one = userService.getOne(wrapper);
-        if (one != null) {
-            one.setPassword(registerDTO.getPassword());
-            userService.saveOrUpdate(one);
-            return R.ok(one);
+        if (one == null) {
+            throw Exp.from("登录失败");
         }
-        return R.fail("登录失败");
+        one.setPassword(registerDTO.getPassword());
+        userService.saveOrUpdate(one);
+        return R.ok(one);
+
     }
 
     @DeleteMapping("/deleteUser/{userName}")

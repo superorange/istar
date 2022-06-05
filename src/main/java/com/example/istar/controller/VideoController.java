@@ -1,7 +1,7 @@
 package com.example.istar.controller;
 
 import com.example.istar.entity.Video;
-import com.example.istar.dto.VideoQueryDTO;
+import com.example.istar.dto.VideoQueryModel;
 import com.example.istar.service.impl.VideoServiceImpl;
 import com.example.istar.utils.R;
 import io.swagger.annotations.Api;
@@ -34,7 +34,7 @@ public class VideoController {
 
     @ApiOperation(value = "获取多个视频", notes = "根据关键字获取多个视频")
     @GetMapping("/getVideos")
-    public R<List<Video>> getVideos(VideoQueryDTO model) {
+    public R<List<Video>> getVideos(VideoQueryModel model) {
         return R.ok(videoService.getVideosByKeyword(model));
     }
 

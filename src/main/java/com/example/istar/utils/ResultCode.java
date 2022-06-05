@@ -6,7 +6,9 @@ package com.example.istar.utils;
 
 public enum ResultCode {
     OK(200, "ok"),
-    FAILED(201, "访问失败"),
+    FAILED(201, "失败"),
+    ERROR_PARAM(202, "传入的参数非法"),
+    USER_EXIST(203, "用户已存在"),
     LOGIN_FAILED(401, "用户名或密码错误"),
     AUTH_FAILED(401, "认证失败，请检查登录信息"),
     PERMISSION_FAILED(403, "无权限访问此资源"),

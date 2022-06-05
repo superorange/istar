@@ -1,5 +1,6 @@
 package com.example.istar.configuration;
 
+import cn.hutool.crypto.digest.MD5;
 import com.example.istar.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,14 +40,12 @@ public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAda
         return new PasswordEncoder() {
             @Override
             public String encode(CharSequence charSequence) {
-                System.out.println("加密字符串:" + charSequence);
                 return charSequence.toString();
             }
 
             @Override
             public boolean matches(CharSequence charSequence, String s) {
-                System.out.println("比较字符串:" + charSequence + "：" + s);
-                return s.equals(charSequence.toString());
+                return s.equals(MD5.create().digestHex(charSequence.toString()));
             }
         };
     }

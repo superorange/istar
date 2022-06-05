@@ -60,6 +60,10 @@ public class R<T> implements Serializable {
         return new R<>(ResultCode.FAILED.getCode(), msg, data);
     }
 
+    public static <T> R<T> fail(int code, String msg) {
+        return new R<>(code, msg);
+    }
+
     public static <T> R<T> fail(ResultCode resultCode) {
         return new R<>(resultCode);
     }

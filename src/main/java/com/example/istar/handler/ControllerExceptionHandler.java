@@ -1,5 +1,6 @@
 package com.example.istar.handler;
 
+import com.example.istar.utils.Exp;
 import com.example.istar.utils.R;
 import com.example.istar.utils.ResultCode;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,11 @@ import org.springframework.web.bind.annotation.*;
 @RestControllerAdvice
 @ResponseStatus(HttpStatus.OK)
 public class ControllerExceptionHandler {
+
+    @ExceptionHandler(Exp.class)
+    public R handleAccessExp(Exp exception) {
+        return R.fail(exception.getCode(), exception.getMsg());
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public R handleAccessDeniedException(AccessDeniedException exception) {
