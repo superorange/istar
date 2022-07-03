@@ -1,5 +1,8 @@
 package com.example.istar.dto;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,26 +12,41 @@ import lombok.Setter;
  */
 @NoArgsConstructor()
 @AllArgsConstructor()
-@Setter
+@ApiModel(value = "分页查询入参")
 public class PageModel {
-    private Integer pageIndex;
-    private Integer pageSize;
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
 
+    public void setCount(Integer count) {
+        this.count = count;
+    }
 
-    public int getPageIndex() {
-        int safe = 1;
-        if (pageIndex != null && pageIndex >= 1) {
-            safe = this.pageIndex;
+    @ApiModelProperty(value = "页数", dataType = "Integer")
+    private Integer index;
+    @ApiModelProperty(value = "数量", dataType = "Integer")
+    private Integer count;
+
+    ///TODO 后面要改
+    public int getIndex() {
+        int safe = 0;
+        if (index != null && index >= 0) {
+            safe = this.index;
         }
         return safe;
     }
 
-    public int getPageSize() {
-        int safe = 10;
-        if (pageSize != null && pageSize >= 0) {
-            safe = this.pageSize;
+    public int getCount() {
+        int safe = 30;
+        if (count != null && count >= 0) {
+            safe = this.count;
         }
         return safe;
+    }
+
+    @ApiModelProperty(hidden = true)
+    public int getOffset() {
+        return getIndex() * getCount();
     }
 
 

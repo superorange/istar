@@ -13,9 +13,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class JwtUtil {
-    public static final int EXPIRE_TIME = 24 * 60 * 60 * 1000;
+    public static final int EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000;
     public static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
-    public static final String REDIS_TOKEN_KEY = "authentication:uuid:";
+
     static final String jwtSec = "abcd123456";
     public static final String UUID_KEY = "uuid";
 

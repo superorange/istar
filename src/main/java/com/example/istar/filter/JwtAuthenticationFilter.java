@@ -1,11 +1,14 @@
 package com.example.istar.filter;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.example.istar.common.PermitUrl;
+import com.example.istar.common.RedisConst;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.utils.JwtUtil;
 import com.example.istar.utils.RedisCache;
 import com.example.istar.utils.ResponseUtils;
 import com.example.istar.utils.ResultCode;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * @author tian
@@ -30,9 +34,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private RedisCache redisCache;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        ///如果是登录接口就不要认证了
-        if (request.getRequestURI().equals("/user/login") || request.getRequestURI().equals("/user/register")) {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        System.out.println("JwtAuthenticationFilter--RUNNING");
+
+        ///如果是PERMIT_URL接口就不要认证了
+        if (Arrays.stream(PermitUrl.PERMIT_URL).anyMatch(s -> s.equals(request.getRequestURI()))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -41,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 String uuid = JwtUtil.getUuid(token);
                 if (!ObjectUtils.isEmpty(uuid)) {
-                    LoginUser loginUser = redisCache.getCacheObject(JwtUtil.REDIS_TOKEN_KEY + uuid);
+                    LoginUser loginUser = redisCache.getCacheObject(RedisConst.REDIS_LOGIN_TOKEN + uuid);
                     if (loginUser != null) {
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -58,6 +64,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         }
         filterChain.doFilter(request, response);
-
     }
 }

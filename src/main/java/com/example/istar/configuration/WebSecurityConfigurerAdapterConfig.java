@@ -1,6 +1,8 @@
 package com.example.istar.configuration;
 
 import cn.hutool.crypto.digest.MD5;
+import com.example.istar.common.PermitUrl;
+import com.example.istar.filter.GatewayLogFilter;
 import com.example.istar.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.annotation.Resource;
@@ -30,6 +33,8 @@ import javax.annotation.Resource;
 public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAdapter {
     @Resource
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Resource
+    private GatewayLogFilter gatewayLogFilter;
     @Resource
     private AuthenticationEntryPoint authenticationEntryPoint;
     @Resource
@@ -52,18 +57,20 @@ public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAda
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        //禁止创建session
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .authorizeRequests().antMatchers("/user/login").anonymous()
-                .antMatchers("/user/register").anonymous()
+                .authorizeRequests()
 //                .anyRequest().access("@myServiceImpl.hasPurchase(request)");
-                .antMatchers("/doc.html").permitAll()
+                .antMatchers(PermitUrl.PERMIT_URL).permitAll()
 //                .antMatchers("/user/getUserList").permitAll()
                 //放行swagger
-                .antMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/v2/**", "/api/**", "/v3/**").permitAll()
+                .antMatchers("/doc.html", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/v2/**", "/api/**", "/v3/**").permitAll()
                 .anyRequest().authenticated();
+        http.formLogin().disable();
         http.csrf().disable();
         ///TODO 开启自定义的过滤器
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(gatewayLogFilter, ChannelProcessingFilter.class);
         ///TODO 开启自定义的登录失败处理
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler);
     }

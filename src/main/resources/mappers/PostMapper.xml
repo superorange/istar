@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--        原符号       <        <=      >       >=       &        '        "-->
+<!--        替换符号    &lt;    &lt;=   &gt;    &gt;=   &amp;   &apos;  &quot;-->
+<mapper namespace="com.example.istar.mapper.PostMapper">
+
+    <select id="querySelfPosts" resultType="com.example.istar.entity.Post">
+
+        select *
+        from t_post o
+        where o.id &lt;= (select id
+                          from t_post i
+                          where i.uuid = #{uuid}
+                          order by i.id desc
+                          limit 1 offset #{index})
+        order by o.id desc
+        limit #{size} offset 0;
+
+    </select>
+</mapper>

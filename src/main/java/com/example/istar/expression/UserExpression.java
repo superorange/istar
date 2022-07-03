@@ -1,5 +1,6 @@
 package com.example.istar.expression;
 
+import com.example.istar.common.Roles;
 import com.example.istar.handler.LoginUser;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,8 @@ public class UserExpression {
 
     public boolean isSuperAdmin() {
         LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return loginUser.getRoles().contains("role_sys_superAdmin");
+        return loginUser.getRoles().contains(Roles.SYS_SUPER_ADMIN);
     }
+
 }
 

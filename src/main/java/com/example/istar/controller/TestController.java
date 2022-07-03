@@ -33,12 +33,6 @@ public class TestController {
         return "redirect:/login.html";
     }
 
-    @RequestMapping("/test2")
-    @ResponseBody
-    public R<?> test2(PageModel pageModel) {
-        return R.ok(userService.queryUsers(pageModel, false));
-    }
-
     @GetMapping("/test3")
     @ResponseBody
     public R<?> test3(HttpServletRequest request) throws IOException {

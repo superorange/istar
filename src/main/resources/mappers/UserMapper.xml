@@ -4,10 +4,10 @@
     <select id="queryUserList" resultType="com.example.istar.entity.User">
         SELECT *
         FROM t_user
-        where id >= (SELECT u.id
-                     FROM t_user u
-                     order by id
-                     limit 1 offset #{index})
+        where id &gt;= (SELECT u.id
+                        FROM t_user u
+                        order by id
+                        limit 1 offset #{index})
         order by id
         limit #{size} offset 0;
     </select>

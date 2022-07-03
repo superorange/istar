@@ -1,6 +1,6 @@
 package com.example.istar.service;
 
-import com.example.istar.entity.Video;
+import com.example.istar.entity.Pictures;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -9,8 +9,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author tian
- * @since 2022-04-19
+ * @since 2022-07-03
  */
-public interface IVideoService extends IService<Video> {
+public interface IPicturesService extends IService<Pictures> {
 
 }

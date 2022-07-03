@@ -9,11 +9,16 @@ public enum ResultCode {
     FAILED(201, "失败"),
     ERROR_PARAM(202, "传入的参数非法"),
     USER_EXIST(203, "用户已存在"),
+    CODE_ERROR(204, "验证码错误"),
+    REGISTER_ERROR(205, "注册失败"),
+    OPERATION_FAILED(206, "操作失败"),
+
+
     LOGIN_FAILED(401, "用户名或密码错误"),
     AUTH_FAILED(401, "认证失败，请检查登录信息"),
     PERMISSION_FAILED(403, "无权限访问此资源"),
 
-
+    OPERATION_FORBIDDEN(998, "禁止的操作"),
     UNKNOWN_ERROR(999, "未知错误");
 
     private final int code;

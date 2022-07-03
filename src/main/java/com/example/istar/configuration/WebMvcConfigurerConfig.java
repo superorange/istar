@@ -55,7 +55,8 @@ public class WebMvcConfigurerConfig implements WebMvcConfigurer {
                 SerializerFeature.DisableCircularReferenceDetect,
                 SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullListAsEmpty,
-                SerializerFeature.WriteNullBooleanAsFalse
+                SerializerFeature.WriteNullBooleanAsFalse,
+                SerializerFeature.WriteNullStringAsEmpty
 //                SerializerFeature.PrettyFormat
 //                SerializerFeature.WriteNullStringAsEmpty,
 //                SerializerFeature.WriteNullBooleanAsFalse

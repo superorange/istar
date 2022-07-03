@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.OutputFile;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -11,7 +12,7 @@ import java.util.Collections;
  */
 public class MyBatisGenerator {
     public static void main(String[] args) {
-        FastAutoGenerator.create("jdbc:postgresql://127.0.0.1:5410/istar", "postgres", "123456")
+        FastAutoGenerator.create("jdbc:mysql://127.0.0.1:3306/istar", "root", "123456")
                 .globalConfig(builder -> {
                     builder.author("tian") // 设置作者
                             .enableSwagger() // 开启 swagger 模式
@@ -27,7 +28,7 @@ public class MyBatisGenerator {
                     builder.entityBuilder().enableLombok() // 开启lombok
                             .mapperBuilder().enableMapperAnnotation().build(); // 开启注解
 //                    builder.controllerBuilder().enableHyphenStyle().enableRestStyle(); // 开启驼峰转连字符
-                    builder.addInclude("t_user")// 设置需要生成的表名
+                    builder.addInclude(Arrays.asList("t_user", "t_post", "t_user", "t_pictures", "t_videos"))// 设置需要生成的表名
                             .addTablePrefix("t_"); // 设置过滤表前缀
                 })
                 // 使用Freemarker引擎模板，默认的是Velocity引擎模板

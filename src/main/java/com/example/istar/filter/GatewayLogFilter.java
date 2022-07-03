@@ -6,8 +6,11 @@ import com.example.istar.utils.RedisCache;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,17 +32,15 @@ import java.time.LocalDateTime;
 //)
 @Component
 @Slf4j
-public class GatewayLogFilter extends OncePerRequestFilter implements Ordered {
-    @Override
-    public int getOrder() {
-        return 0;
-    }
+public class GatewayLogFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        System.out.println("GatewayLogFilter--RUNNING");
         TraceLog traceLog = new TraceLog();
         traceLog.setRequestIP(request.getRemoteAddr());
         String url = request.getRequestURL().toString();
+
         if (request.getQueryString() != null) {
             url = url + "?" + request.getQueryString();
         }

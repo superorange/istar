@@ -48,6 +48,10 @@ public class R<T> implements Serializable {
         return new R<>(ResultCode.OK, data);
     }
 
+    public static <T> R<T> ok(T data, String msg) {
+        return new R<>(ResultCode.OK.getCode(), msg, data);
+    }
+
     public static <T> R<T> ok() {
         return new R<>(ResultCode.OK);
     }
@@ -56,12 +60,21 @@ public class R<T> implements Serializable {
         return new R<>(ResultCode.FAILED.getCode(), msg);
     }
 
+    public static <T> R<T> fail() {
+        return new R<>(ResultCode.FAILED);
+    }
+
     public static <T> R<T> fail(String msg, T data) {
         return new R<>(ResultCode.FAILED.getCode(), msg, data);
     }
 
+
     public static <T> R<T> fail(int code, String msg) {
         return new R<>(code, msg);
+    }
+
+    public static <T> R<T> fail(int code, T data) {
+        return new R<>(code, null, data);
     }
 
     public static <T> R<T> fail(ResultCode resultCode) {
