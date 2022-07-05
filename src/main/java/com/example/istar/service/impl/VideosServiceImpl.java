@@ -1,6 +1,6 @@
 package com.example.istar.service.impl;
 
-import com.example.istar.entity.Videos;
+import com.example.istar.entity.VideoEntity;
 import com.example.istar.mapper.VideosMapper;
 import com.example.istar.service.IVideosService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2022-07-03
  */
 @Service
-public class VideosServiceImpl extends ServiceImpl<VideosMapper, Videos> implements IVideosService {
+public class VideosServiceImpl extends ServiceImpl<VideosMapper, VideoEntity> implements IVideosService {
 
 }

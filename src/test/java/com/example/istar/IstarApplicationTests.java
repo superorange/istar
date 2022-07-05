@@ -1,6 +1,6 @@
 package com.example.istar;
 
-import com.example.istar.entity.User;
+import com.example.istar.entity.UserEntity;
 import com.example.istar.utils.RedisCache;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +20,7 @@ class IstarApplicationTests {
     @Test
     void test() {
         String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1aWQiOiI5OGNmMjc1NS1mMDQ2LTRjN2MtOGZmOS0xZTY2YTI0NDU1YjIiLCJleHAiOjE3MzkyODU3MTd9.hswcSZqls2cYWy5VV8ds2RM4FsxrMFmLVv1iwWcSAF4";
-        User cacheObject = redisCache.getCacheObject("token:" + token);
+        UserEntity cacheObject = redisCache.getCacheObject("token:" + token);
         System.out.println(cacheObject);
     }
 

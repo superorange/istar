@@ -6,6 +6,7 @@ public interface PermitUrl {
             "/code/gen",
             "/safe/check",
             "/user/login",
-            "/code/check"
+            "/code/check",
+            "/files/*"
     };
 }

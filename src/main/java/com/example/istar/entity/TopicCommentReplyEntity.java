@@ -4,7 +4,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.io.Serializable;
 
 import com.example.istar.utils.LocalDateTimeSerializer;
@@ -16,7 +15,7 @@ import lombok.Setter;
 
 /**
  * <p>
- *
+ * 回复表
  * </p>
  *
  * @author tian
@@ -24,9 +23,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_videos")
-@ApiModel(value = "Videos对象", description = "")
-public class Videos implements Serializable {
+@TableName("t_topic_comment_reply")
+@ApiModel(value = "TopicCommentReply对象", description = "回复表")
+public class TopicCommentReplyEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -34,34 +33,35 @@ public class Videos implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty("用户识别码,可以为空")
+    @ApiModelProperty("评论用户ID")
     private String uuid;
 
-    @ApiModelProperty("视频id")
-    private String videoId;
+    @ApiModelProperty("被回复评论的ID")
+    private String commentId;
 
-    @ApiModelProperty("视频hash")
-    private String videoHash;
+    @ApiModelProperty("回复评论ID")
+    private String replyId;
 
-    @ApiModelProperty("视频地址")
-    private String videoUrl;
+    @ApiModelProperty("被回复的回复评论ID")
+    private String toReplyId;
 
-    @ApiModelProperty("视频名")
-    private String videoName;
+    @ApiModelProperty("被回复的回复用户ID")
+    private String toReplyUuid;
 
-    @ApiModelProperty("视频大小,单位字节")
-    private Long videoSize;
+    @ApiModelProperty("回复内容")
+    private String content;
 
-    @ApiModelProperty("视频类型")
-    private String videoType;
-
-    @ApiModelProperty(value = "状态0正常，-1禁用,1删除", dataType = "java.lang.Boolean")
-    @JSONField(serializeUsing = StatusSerializer.class)
+    @ApiModelProperty("状态0正常,-1禁用,1删除")
+    @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
     private Integer status;
 
-    @ApiModelProperty(value = "创建时间", dataType = "java.lang.String")
+    @ApiModelProperty("创建时间")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtCreate;
+    private Long createTime;
+
+
+    @ApiModelProperty("点赞数")
+    private Long likeCount;
 
 
 }

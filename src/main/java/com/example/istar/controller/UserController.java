@@ -1,11 +1,10 @@
 package com.example.istar.controller;
 
 import cn.hutool.core.lang.UUID;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.istar.common.RedisConst;
 import com.example.istar.common.Roles;
-import com.example.istar.entity.User;
+import com.example.istar.entity.UserEntity;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.dto.UserWrapper;
 import com.example.istar.dto.PageModel;
@@ -20,9 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.management.relation.Role;
-import javax.servlet.http.HttpServletResponse;
-import javax.websocket.server.PathParam;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,7 +32,7 @@ import java.util.List;
  */
 @Api(tags = "用户接口")
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/user")
 public class UserController {
     @Resource
     private UserServiceImpl userService;
@@ -57,48 +53,48 @@ public class UserController {
         if (redisCode != null && redisCode.equals(model.getCode())) {
             ///检验成功，删除验证码
             redisCache.deleteObject(RedisConst.REDIS_CODE_LOGIN + model.getKey());
-            User user = null;
+            UserEntity userEntity = null;
             if (RegexTool.isEmail(model.getKey())) {
-                user = userService.getOne(new QueryWrapper<User>().eq("email", model.getKey()));
+                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("email", model.getKey()));
             } else if (RegexTool.isMobiles(model.getKey())) {
-                user = userService.getOne(new QueryWrapper<User>().eq("mobile", model.getKey()));
+                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("mobile", model.getKey()));
             }
             ///新用户
-            if (user == null) {
-                user = generateUser(model);
-                boolean save = userService.save(user);
+            if (userEntity == null) {
+                userEntity = generateUser(model);
+                boolean save = userService.save(userEntity);
                 if (!save) {
                     throw Exp.from(ResultCode.REGISTER_ERROR);
                 }
             }
-            String token = JwtUtil.generateToken(user.getUuid());
+            String token = JwtUtil.generateToken(userEntity.getUuid());
             if (token == null) {
                 throw Exp.from(ResultCode.FAILED);
             }
-            LoginUser loginUser = new LoginUser(user, Arrays.asList(user.getRoles().split(",")));
-            redisCache.setCacheObject(RedisConst.REDIS_LOGIN_TOKEN + user.getUuid(), loginUser, JwtUtil.EXPIRE_TIME, JwtUtil.TIME_UNIT);
-            return R.ok(new UserWrapper(token, user));
+            LoginUser loginUser = new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
+            redisCache.setCacheObject(RedisConst.REDIS_LOGIN_TOKEN + userEntity.getUuid(), loginUser, JwtUtil.EXPIRE_TIME, JwtUtil.TIME_UNIT);
+            return R.ok(new UserWrapper(token, userEntity));
         }
         throw Exp.from(ResultCode.CODE_ERROR);
 
 
     }
 
-    private User generateUser(LoginModel model) {
-        User user = new User();
+    private UserEntity generateUser(LoginModel model) {
+        UserEntity userEntity = new UserEntity();
         if (RegexTool.isEmail(model.getKey())) {
-            user.setEmail(model.getKey());
+            userEntity.setEmail(model.getKey());
         } else if (RegexTool.isMobiles(model.getKey())) {
-            user.setMobile(model.getKey());
+            userEntity.setMobile(model.getKey());
         }
-        user.setUuid(UUID.randomUUID().toString(false));
-        user.setGmtCreate(System.currentTimeMillis());
-        user.setGmtModified(System.currentTimeMillis());
-        user.setRoles(Roles.SYS_USER);
-        user.setStatus(0);
-        user.setPoint(0L);
-        user.setBalance(0.0);
-        return user;
+        userEntity.setUuid(UUID.randomUUID().toString(false));
+        userEntity.setCreateTime(System.currentTimeMillis());
+        userEntity.setModifyTime(System.currentTimeMillis());
+        userEntity.setRoles(Roles.SYS_USER);
+        userEntity.setStatus(0);
+        userEntity.setPoint(0L);
+        userEntity.setBalance(0.0);
+        return userEntity;
     }
 
     ///TODO hasRole 默认增加ROLE_前缀
@@ -106,15 +102,15 @@ public class UserController {
     @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
     @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("")
-    public R<List<User>> getUsers(PageModel pageModel) {
+    public R<List<UserEntity>> getUsers(PageModel pageModel) {
         return R.ok(userService.queryUsers(pageModel));
     }
 
     @ApiOperation(value = "获取单个用户信息", notes = "获取单个用户信息")
     @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("/{uuid}")
-    public R<User> getUser(@PathVariable String uuid) {
-        return R.ok(userService.getOne(new QueryWrapper<User>().eq("uuid", uuid)));
+    public R<UserEntity> getUser(@PathVariable String uuid) {
+        return R.ok(userService.getOne(new QueryWrapper<UserEntity>().eq("uuid", uuid)));
     }
 
     /**
@@ -123,8 +119,8 @@ public class UserController {
      * @return R<User>
      */
     @PatchMapping("")
-    @ApiOperation(value = "用户更新", notes = "用户更新", response = User.class)
-    public R<User> updateUser() {
+    @ApiOperation(value = "用户更新", notes = "用户更新", response = UserEntity.class)
+    public R<UserEntity> updateUser() {
         return R.ok();
     }
 
@@ -133,14 +129,14 @@ public class UserController {
     public R<Boolean> deleteUser(@PathVariable String uuid) throws Exp {
         LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         //是自己或者是超级管理员，则可以删除
-        if (loginUser.getUser().getUuid().equals(uuid) || loginUser.getUser().getRoles().equals(Roles.SYS_SUPER_ADMIN)) {
-            QueryWrapper<User> wrapper = new QueryWrapper<>();
-            wrapper.eq("uuid", loginUser.getUser().getUuid());
-            User one = userService.getOne(wrapper);
+        if (loginUser.getUserEntity().getUuid().equals(uuid) || loginUser.getUserEntity().getRoles().equals(Roles.SYS_SUPER_ADMIN)) {
+            QueryWrapper<UserEntity> wrapper = new QueryWrapper<>();
+            wrapper.eq("uuid", loginUser.getUserEntity().getUuid());
+            UserEntity one = userService.getOne(wrapper);
             if (one != null) {
                 one.setStatus(-1);
                 boolean update = userService.updateById(one);
-                redisCache.deleteObject(RedisConst.REDIS_LOGIN_TOKEN + loginUser.getUser().getUuid());
+                redisCache.deleteObject(RedisConst.REDIS_LOGIN_TOKEN + loginUser.getUserEntity().getUuid());
                 return update ? R.ok() : R.fail(ResultCode.OPERATION_FAILED);
             }
             return R.fail();

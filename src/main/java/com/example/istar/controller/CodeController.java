@@ -49,6 +49,7 @@ public class CodeController {
         return R.ok(res1);
     }
 
+    @ApiOperation(value = "校验滑块轨迹", notes = "滑块轨迹校验")
     @PostMapping("/check")
     @ResponseBody
     public R checkCaptcha(@RequestParam("id") String id,

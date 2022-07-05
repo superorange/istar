@@ -6,11 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
-import java.util.List;
 
 import com.example.istar.utils.LocalDateTimeSerializer;
 import com.example.istar.utils.StatusSerializer;
-import com.example.istar.utils.StringToListSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -26,9 +24,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_post")
-@ApiModel(value = "Post对象", description = "")
-public class Post implements Serializable {
+@TableName("t_pictures")
+@ApiModel(value = "Pictures对象", description = "")
+public class PictureEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,35 +34,28 @@ public class Post implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty("用户识别码")
-    @JSONField(serialize = false)
+    @ApiModelProperty("用户识别码,可以为空")
     private String uuid;
 
-    @ApiModelProperty("帖子id")
-    private String postId;
-
-    @ApiModelProperty(value = "图片ID列表，用分号分隔", dataType = "java.util.List")
-    @JSONField(serialize = false)
+    @ApiModelProperty("图片id")
     private String picId;
 
-    @ApiModelProperty(value = "视频ID列表，用分号分隔", dataType = "java.util.List")
-    @JSONField(serialize = false)
-    private String videoId;
+    @ApiModelProperty("图片地址")
+    private String picUrl;
 
-    @ApiModelProperty("标题")
-    private String title;
+    @ApiModelProperty("文件名")
+    private String picName;
 
-    @ApiModelProperty("内容")
-    private String content;
+    @ApiModelProperty("文件类型")
+    private String picType;
+
     @ApiModelProperty(value = "状态0正常，-1禁用,1删除", dataType = "java.lang.Boolean")
-    @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
+    @JSONField(serializeUsing = StatusSerializer.class)
     private Integer status;
 
     @ApiModelProperty(value = "创建时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtCreate;
-    @ApiModelProperty(value = "修改时间", dataType = "java.lang.String")
-    @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtModified;
+    private Long createTime;
+
 
 }

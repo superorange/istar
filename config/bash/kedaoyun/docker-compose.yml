@@ -1,0 +1,12 @@
+version: '1'
+services:
+  kedaoyun:
+    image: kodcloud/kodbox
+    hostname: "kodcloud"
+    ports:
+      - "9080:80"
+    volumes:
+      - /Users/tian/docker/kodcloud:/var/www/html
+#  docker-compose up -d
+#docker pull --platform=arm64/amd64 nginx:alpine
+#IMAGE_NAME:TAG@sha256:SHA256_VALUE

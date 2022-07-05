@@ -28,7 +28,7 @@ public class MyBatisGenerator {
                     builder.entityBuilder().enableLombok() // 开启lombok
                             .mapperBuilder().enableMapperAnnotation().build(); // 开启注解
 //                    builder.controllerBuilder().enableHyphenStyle().enableRestStyle(); // 开启驼峰转连字符
-                    builder.addInclude(Arrays.asList("t_user", "t_post", "t_user", "t_pictures", "t_videos"))// 设置需要生成的表名
+                    builder.addInclude(Arrays.asList("t_user", "t_topic","t_topic_comment","t_topic_comment_reply", "t_user", "t_pictures", "t_videos"))// 设置需要生成的表名
                             .addTablePrefix("t_"); // 设置过滤表前缀
                 })
                 // 使用Freemarker引擎模板，默认的是Velocity引擎模板

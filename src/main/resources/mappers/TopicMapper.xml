@@ -2,14 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <!--        原符号       <        <=      >       >=       &        '        "-->
 <!--        替换符号    &lt;    &lt;=   &gt;    &gt;=   &amp;   &apos;  &quot;-->
-<mapper namespace="com.example.istar.mapper.PostMapper">
+<mapper namespace="com.example.istar.mapper.TopicMapper">
 
-    <select id="querySelfPosts" resultType="com.example.istar.entity.Post">
+    <select id="querySelfPosts" resultType="com.example.istar.entity.TopicEntity">
 
         select *
-        from t_post o
+        from t_topic o
         where o.id &lt;= (select id
-                          from t_post i
+                          from t_topic i
                           where i.uuid = #{uuid}
                           order by i.id desc
                           limit 1 offset #{index})

@@ -27,7 +27,15 @@ captcha:
       # 二次验证缓存key前缀，默认是 captcha:secondary
       keyPrefix: "captcha:secondary"
 minio:
-  endpoint: http://127.0.0.1:9000
-  accessKey: minioadmin
-  secretKey: minioadmin
-  bucketName: test
+  endpoint: http://192.168.123.173:9000
+  accessKey: admin
+  secretKey: 12345678
+  bucketName: main-bucket
+  pictureBucketName: pictures-bucket
+  videoBucketName: videos-bucket
+spring:
+  # 配置文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB

@@ -1,0 +1,22 @@
+{
+  //这个日期就这样吧，虽然比较老
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [                     //  权限列表
+        "s3:ListAllMyBuckets",        //  查看所有的桶权限
+        "s3:ListBucket",              //  查看桶内对象权限
+        "s3:GetBucketLocation",       //  定位bucket权限
+        "s3:GetObject",               //   下载权限
+        "s3:PutObject",               //   上传权限
+        "s3:DeleteObject"             //   删除权限
+      ],
+      "Resource": [
+        "arn:aws:s3:::onebucket/*"              // arn:aws:s3不用动，后面用*表示所有桶，用onebucket/*表示只针对这个桶
+      ]
+    }
+  ]
+}
+
+

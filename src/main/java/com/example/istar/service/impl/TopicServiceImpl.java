@@ -1,10 +1,10 @@
 package com.example.istar.service.impl;
 
 import com.example.istar.dto.PageModel;
-import com.example.istar.entity.Post;
+import com.example.istar.entity.TopicEntity;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.mapper.PostMapper;
-import com.example.istar.service.IPostService;
+import com.example.istar.mapper.TopicMapper;
+import com.example.istar.service.ITopicService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +20,13 @@ import java.util.List;
  * @since 2022-07-03
  */
 @Service
-public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements IPostService {
+public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicEntity> implements ITopicService {
     @Resource
-    private PostMapper mapper;
+    private TopicMapper mapper;
 
     @Override
-    public List<Post> querySelfPosts(PageModel pageModel) {
-        String uuid = LoginUser.getCurrentUser().getUser().getUuid();
+    public List<TopicEntity> querySelfPosts(PageModel pageModel) {
+        String uuid = LoginUser.getCurrentUser().getUserEntity().getUuid();
         return mapper.querySelfPosts(pageModel.getOffset(), pageModel.getCount(), uuid);
     }
 }

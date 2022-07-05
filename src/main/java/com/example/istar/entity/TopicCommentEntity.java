@@ -16,7 +16,7 @@ import lombok.Setter;
 
 /**
  * <p>
- *
+ * 评论表
  * </p>
  *
  * @author tian
@@ -24,9 +24,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_pictures")
-@ApiModel(value = "Pictures对象", description = "")
-public class Pictures implements Serializable {
+@TableName("t_topic_comment")
+@ApiModel(value = "TopicComment对象", description = "评论表")
+public class TopicCommentEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -34,28 +34,26 @@ public class Pictures implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty("用户识别码,可以为空")
+    @ApiModelProperty("评论用户ID")
     private String uuid;
 
-    @ApiModelProperty("图片id")
-    private String picId;
+    @ApiModelProperty("评论主题ID")
+    private String topicId;
 
-    @ApiModelProperty("图片地址")
-    private String picUrl;
+    @ApiModelProperty("评论ID")
+    private String commentId;
 
-    @ApiModelProperty("文件名")
-    private String picName;
+    @ApiModelProperty("评论内容")
+    private String content;
 
-    @ApiModelProperty("文件类型")
-    private String picType;
-
-    @ApiModelProperty(value = "状态0正常，-1禁用,1删除", dataType = "java.lang.Boolean")
-    @JSONField(serializeUsing = StatusSerializer.class)
+    @ApiModelProperty("状态0正常,-1禁用,1删除")
+    @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
     private Integer status;
 
-    @ApiModelProperty(value = "创建时间", dataType = "java.lang.String")
+    @ApiModelProperty("创建时间")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtCreate;
+    private Long createTime;
 
-
+    @ApiModelProperty("点赞数")
+    private Long likeCount;
 }

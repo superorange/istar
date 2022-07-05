@@ -1,9 +1,8 @@
 package com.example.istar.handler;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.example.istar.entity.User;
+import com.example.istar.entity.UserEntity;
 import com.example.istar.service.impl.UserServiceImpl;
-import com.example.istar.utils.RegexTool;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,10 +19,10 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String uuid) throws UsernameNotFoundException {
-        User user = userRepository.getOne(new QueryWrapper<User>().eq("uuid", uuid));
-        if (ObjectUtils.isEmpty(user)) {
+        UserEntity userEntity = userRepository.getOne(new QueryWrapper<UserEntity>().eq("uuid", uuid));
+        if (ObjectUtils.isEmpty(userEntity)) {
             throw new UsernameNotFoundException(null);
         }
-        return new LoginUser(user, Arrays.asList(user.getRoles().split(",")));
+        return new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
     }
 }

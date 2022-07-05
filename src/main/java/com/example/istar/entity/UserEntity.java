@@ -28,7 +28,7 @@ import lombok.ToString;
 @TableName("t_user")
 @ToString
 @ApiModel(value = "User对象", description = "")
-public class User implements Serializable {
+public class UserEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -71,11 +71,11 @@ public class User implements Serializable {
 
     @ApiModelProperty(value = "创建时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtCreate;
+    private Long createTime;
 
     @ApiModelProperty(value = "修改时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtModified;
+    private Long modifyTime;
 
     @ApiModelProperty("用户余额")
     private Double balance;

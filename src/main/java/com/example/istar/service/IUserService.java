@@ -1,7 +1,7 @@
 package com.example.istar.service;
 
 import com.example.istar.dto.PageModel;
-import com.example.istar.entity.User;
+import com.example.istar.entity.UserEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -14,6 +14,6 @@ import java.util.List;
  * @author tian
  * @since 2022-04-18
  */
-public interface IUserService extends IService<User> {
-    List<User> queryUsers(PageModel model);
+public interface IUserService extends IService<UserEntity> {
+    List<UserEntity> queryUsers(PageModel model);
 }

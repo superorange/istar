@@ -2,7 +2,6 @@ package com.example.istar.model;
 
 import cn.hutool.core.util.ObjectUtil;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -10,8 +9,8 @@ import java.util.List;
 public class PostModel {
     private String title;
     private String content;
-    private List<String> pictures;
-    private List<String> videos;
+    private List<String> pictureIds;
+    private List<String> videoIds;
 
     public boolean isCorrect() {
         return ObjectUtil.isAllNotEmpty(this.getTitle(), this.getContent());

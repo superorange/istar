@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class PostSimpleModel {
+public class TopicSimpleModel {
     private String postId;
 
 }

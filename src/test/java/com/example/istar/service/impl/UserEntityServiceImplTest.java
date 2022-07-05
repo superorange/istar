@@ -4,7 +4,7 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.example.istar.IstarApplicationTests;
-import com.example.istar.entity.User;
+import com.example.istar.entity.UserEntity;
 import com.example.istar.mapper.UserMapper;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 
-class UserServiceImplTest extends IstarApplicationTests {
+class UserEntityServiceImplTest extends IstarApplicationTests {
     @Resource
     private UserMapper userMapper;
 
@@ -26,18 +26,18 @@ class UserServiceImplTest extends IstarApplicationTests {
             Faker faker2 = new Faker();
             new Thread(() -> {
                 while (latch.getCount() > 0) {
-                    User user = new User();
-                    user.setUuid(UUID.randomUUID().toString(false));
-                    user.setUsername(faker2.name().username() + RandomUtil.randomNumbers(5));
-                    user.setNickName(faker1.name().username());
-                    user.setPassword(MD5.create().digestHex(UUID.fastUUID().toString(false)));
-                    user.setEmail(faker2.internet().emailAddress());
-                    user.setMobile(faker1.phoneNumber().cellPhone());
-                    user.setGmtCreate(System.currentTimeMillis());
-                    user.setGmtModified(System.currentTimeMillis());
-                    user.setRoles("role_common_user");
+                    UserEntity userEntity = new UserEntity();
+                    userEntity.setUuid(UUID.randomUUID().toString(false));
+                    userEntity.setUsername(faker2.name().username() + RandomUtil.randomNumbers(5));
+                    userEntity.setNickName(faker1.name().username());
+                    userEntity.setPassword(MD5.create().digestHex(UUID.fastUUID().toString(false)));
+                    userEntity.setEmail(faker2.internet().emailAddress());
+                    userEntity.setMobile(faker1.phoneNumber().cellPhone());
+                    userEntity.setGmtCreate(System.currentTimeMillis());
+                    userEntity.setGmtModified(System.currentTimeMillis());
+                    userEntity.setRoles("role_common_user");
                     try {
-                        userMapper.insert(user);
+                        userMapper.insert(userEntity);
                     } catch (Exception e) {
 //                        e.printStackTrace();
                     }

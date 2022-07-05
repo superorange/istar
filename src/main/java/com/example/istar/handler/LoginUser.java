@@ -1,7 +1,7 @@
 package com.example.istar.handler;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.example.istar.entity.User;
+import com.example.istar.entity.UserEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 public class LoginUser implements UserDetails {
-    private User user;
+    private UserEntity userEntity;
 
-    public LoginUser(User user, List<String> roles) {
-        this.user = user;
+    public LoginUser(UserEntity userEntity, List<String> roles) {
+        this.userEntity = userEntity;
         this.roles = roles;
     }
 
@@ -38,12 +38,12 @@ public class LoginUser implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return userEntity.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return userEntity.getUsername();
     }
 
     @Override
