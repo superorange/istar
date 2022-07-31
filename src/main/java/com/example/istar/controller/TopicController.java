@@ -1,25 +1,19 @@
 package com.example.istar.controller;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.Roles;
-import com.example.istar.dto.PageModel;
-import com.example.istar.dto.TopicEntityWrapper;
-import com.example.istar.dto.TopicSimpleModel;
+import com.example.istar.dto.impl.*;
 import com.example.istar.entity.PictureEntity;
 import com.example.istar.entity.TopicEntity;
 import com.example.istar.entity.VideoEntity;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.model.PostModel;
 import com.example.istar.service.impl.PicturesServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
 import com.example.istar.service.impl.VideosServiceImpl;
-import com.example.istar.utils.Exp;
-import com.example.istar.utils.MinioUtils;
-import com.example.istar.utils.R;
-import com.example.istar.utils.ResultCode;
+import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
@@ -55,43 +49,59 @@ public class TopicController {
 
     @PostMapping("")
     @ApiOperation(value = "添加帖子")
-    public R<TopicSimpleModel> addPost(PostModel model, @RequestParam("pictures") MultipartFile[] multipartFile) throws Exception {
+    public R<TopicSimpleModel> addTopic(TopicModel model, @RequestParam("pictures") MultipartFile[] multipartFile) throws Exception {
         if (!model.isCorrect()) {
             throw Exp.from(ResultCode.ERROR_PARAM);
         }
         LoginUser loginUser = LoginUser.getCurrentUser();
         TopicEntity topicEntity = new TopicEntity();
         topicEntity.setUuid(loginUser.getUserEntity().getUuid());
-        topicEntity.setTopicId(DateUtil.format(new Date(), "yyyyMMddHHmmss") + "-" + UUID.fastUUID());
+        topicEntity.setTopicId(CommonUtil.generateTimeId());
         topicEntity.setTitle(model.getTitle());
         topicEntity.setContent(model.getContent());
         topicEntity.setStatus(0);
         topicEntity.setCreateTime(System.currentTimeMillis());
-        if (model.getPictureIds() == null) {
-            model.setPictureIds(new ArrayList<>());
-        }
-        boolean result = uploadPicAndToDb(model, multipartFile, loginUser);
+        topicEntity.setModifyTime(System.currentTimeMillis());
+        ///新增，现在先这样做，置空
+        model.setPictureIds(new HashSet<>());
+        boolean result = uploadPicAndToDb(model, multipartFile, loginUser.getUserEntity().getUuid());
         if (!result) return R.fail(277, "图片存储失败");
-        //插入图片
-        if (model.getPictureIds() != null && model.getPictureIds().size() > 0) {
-            topicEntity.setPicId(String.join(";", model.getPictureIds()));
-        }
-        //插入视频
-        if (model.getVideoIds() != null && model.getVideoIds().size() > 0) {
-            topicEntity.setVideoId(String.join(";", model.getVideoIds()));
-        }
+        //将图片List转String
+        updateModelPic(model, topicEntity);
+        //将视频List转String
+        updateModelVideo(model, topicEntity);
         boolean save = topicService.save(topicEntity);
         return save ? R.ok(new TopicSimpleModel(topicEntity.getTopicId())) : R.fail();
     }
 
-    private boolean uploadPicAndToDb(PostModel model, MultipartFile[] multipartFile, LoginUser loginUser) throws Exception {
-        if (multipartFile.length > 0) {
+    private void updateModelVideo(TopicModel model, TopicEntity topicEntity) {
+        if (model.getVideoIds() != null) {
+            if (model.getVideoIds().size() > 0) {
+                topicEntity.setVideoId(String.join(";", model.getVideoIds()));
+            } else {
+                topicEntity.setVideoId("");
+            }
+        }
+    }
+
+    private void updateModelPic(TopicModel model, TopicEntity topicEntity) {
+        if (model.getPictureIds() != null) {
+            if (model.getPictureIds().size() > 0) {
+                topicEntity.setPicId(String.join(";", model.getPictureIds()));
+            } else {
+                topicEntity.setPicId("");
+            }
+        }
+    }
+
+    private boolean uploadPicAndToDb(TopicModel model, MultipartFile[] multipartFile, String uuid) throws Exception {
+        if (multipartFile != null && multipartFile.length > 0) {
             List<MinioUtils.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(multipartFile);
             List<PictureEntity> picObject = uploadWrappers.stream().map(f -> {
                 PictureEntity pictureEntity = new PictureEntity();
-                pictureEntity.setUuid(loginUser.getUserEntity().getUuid());
-                pictureEntity.setPicId(f.getShortId());
-                model.getPictureIds().add(f.getShortId());
+                pictureEntity.setUuid(uuid);
+                pictureEntity.setPicId(f.getFileId());
+                model.getPictureIds().add(f.getFileId());
                 pictureEntity.setPicUrl(f.getFileBucketName());
                 pictureEntity.setPicName(f.getFileOriginName());
                 pictureEntity.setPicType("TOPIC");
@@ -106,12 +116,12 @@ public class TopicController {
     }
 
 
-    @GetMapping("/{postId}")
+    @GetMapping("/{topicId}")
     @ApiOperation(value = "获取帖子")
-    public R<TopicEntityWrapper> getPost(@PathVariable("postId") String postId) {
+    public R<TopicEntityWrapper> getTopic(@PathVariable("topicId") String topicId) {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         //排除不可见的帖子
-        lambdaQueryWrapper.eq(TopicEntity::getTopicId, postId).eq(TopicEntity::getStatus, 0);
+        lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId).eq(TopicEntity::getStatus, 0);
         TopicEntity TopicEntity = topicService.getOne(lambdaQueryWrapper);
         if (TopicEntity != null) {
             TopicEntityWrapper topicWrapper = new TopicEntityWrapper();
@@ -124,11 +134,34 @@ public class TopicController {
     }
 
     @GetMapping("")
-    @ApiOperation(value = "获取自己的所有帖子")
-    public R<List<TopicEntityWrapper>> getPosts(PageModel model) {
-        if (model == null) {
-            model = new PageModel();
+    @ApiOperation(value = "获取帖子列表")
+    public R<PageWrapperModel<TopicEntityWrapper>> getPosts(PageModel model) {
+        model = PageModel.avoidNull(model);
+        LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(TopicEntity::getStatus, 0);
+        if (StrUtil.isNotBlank(model.getQuery())) {
+            lambdaQueryWrapper.like(TopicEntity::getTitle, model.getQuery());
         }
+        lambdaQueryWrapper.orderBy(true, model.isAsc(), TopicEntity::getId);
+        Page<TopicEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
+        Page<TopicEntity> topicEntityPage = topicService.page(page, lambdaQueryWrapper);
+        List<TopicEntityWrapper> wrappers = topicEntityPage.getRecords().stream().map(Topic -> {
+            TopicEntityWrapper topicWrapper = new TopicEntityWrapper();
+            BeanUtils.copyProperties(Topic, topicWrapper);
+            return topicWrapper;
+        }).collect(Collectors.toList());
+        for (TopicEntityWrapper topicWrapper : wrappers) {
+            expandPicAndVideo(topicWrapper);
+        }
+        PageWrapperModel<TopicEntityWrapper> pageWrapperModel = new PageWrapperModel<>();
+        pageWrapperModel.setRows(wrappers);
+        return R.ok(pageWrapperModel);
+    }
+
+    @GetMapping("/self")
+    @ApiOperation(value = "获取自己的所有帖子")
+    public R<List<TopicEntityWrapper>> getSelfTopics(PageModel model) {
+        model = PageModel.avoidNull(model);
         List<TopicEntity> posts = topicService.querySelfPosts(model);
         List<TopicEntityWrapper> wrappers = posts.stream().map(Topic -> {
             TopicEntityWrapper topicWrapper = new TopicEntityWrapper();
@@ -141,12 +174,13 @@ public class TopicController {
         return R.ok(wrappers);
     }
 
-    @DeleteMapping("/{postId}")
+
+    @DeleteMapping("/{topicId}")
     @ApiOperation(value = "删除帖子")
-    public R<Boolean> deletePost(@PathVariable("postId") String postId) {
+    public R<Boolean> deleteTopic(@PathVariable("topicId") String topicId) {
         LoginUser user = LoginUser.getCurrentUser();
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(TopicEntity::getTopicId, postId);
+        lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
         TopicEntity TopicEntity = topicService.getOne(lambdaQueryWrapper);
         if (TopicEntity != null) {
             //只有是自己的帖子才可以删除
@@ -173,6 +207,44 @@ public class TopicController {
             return R.fail(ResultCode.OPERATION_FORBIDDEN);
         }
         return R.ok(true);
+    }
+
+
+    @PutMapping("/{topicId}")
+    @ApiOperation(value = "修改帖子")
+    public R<TopicSimpleModel> updateTopic(@PathVariable("topicId") String topicId, TopicModel model, @RequestParam(value = "pictures", required = false) MultipartFile[] multipartFiles) throws Exception {
+        LoginUser loginUser = LoginUser.getCurrentUser();
+        LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
+        TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
+        //查询是否有该资源
+        if (topicEntity == null) {
+            return R.fail(ResultCode.NOT_FOUND);
+        }
+        //判断所有权
+        if (!loginUser.getUserEntity().getUuid().equals(topicEntity.getUuid())) {
+            return R.fail(ResultCode.PERMISSION_FAILED);
+        }
+        //判断是否可以更改
+        if (!Roles.hasSelfEdit(topicEntity.getStatus())) {
+            return R.fail(ResultCode.RESOURCE_FORBIDDEN);
+        }
+        topicEntity.setTitle(model.getTitle());
+        topicEntity.setContent(model.getContent());
+        topicEntity.setModifyTime(System.currentTimeMillis());
+        if (multipartFiles != null && multipartFiles.length > 0) {
+            if (model.getPictureIds() == null) {
+                model.setPictureIds(new HashSet<>());
+            }
+            boolean result = uploadPicAndToDb(model, multipartFiles, loginUser.getUserEntity().getUuid());
+            if (!result) return R.fail(277, "图片存储失败");
+        }
+        updateModelPic(model, topicEntity);
+        updateModelVideo(model, topicEntity);
+        boolean save = topicService.updateById(topicEntity);
+        return save ? R.ok(new TopicSimpleModel(topicEntity.getTopicId())) : R.fail();
+
+
     }
 
 

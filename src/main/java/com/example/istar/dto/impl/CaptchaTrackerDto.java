@@ -1,4 +1,4 @@
-package com.example.istar.dto;
+package com.example.istar.dto.impl;
 
 import lombok.Data;
 

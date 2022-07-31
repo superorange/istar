@@ -69,4 +69,16 @@ public class LoginUser implements UserDetails {
     public static LoginUser getCurrentUser() {
         return (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
+    public static boolean isSelf(String uuid) {
+        return uuid != null && ((LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserEntity().getUuid().equals(uuid);
+    }
+
+    public static String getUuid() {
+        return getCurrentUser().getUserEntity().getUuid();
+    }
+
+    public String getUid() {
+        return this.userEntity.getUuid();
+    }
 }

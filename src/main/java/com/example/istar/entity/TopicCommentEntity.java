@@ -55,5 +55,5 @@ public class TopicCommentEntity implements Serializable {
     private Long createTime;
 
     @ApiModelProperty("点赞数")
-    private Long likeCount;
+    private Integer likeCount;
 }

@@ -35,6 +35,6 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public R<?> handleRepException(Exception exception) {
-        return R.fail(exception.getMessage(), exception);
+        return R.fail(exception.toString(), exception.getStackTrace());
     }
 }

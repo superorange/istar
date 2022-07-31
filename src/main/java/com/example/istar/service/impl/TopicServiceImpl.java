@@ -1,6 +1,6 @@
 package com.example.istar.service.impl;
 
-import com.example.istar.dto.PageModel;
+import com.example.istar.dto.impl.PageModel;
 import com.example.istar.entity.TopicEntity;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.mapper.TopicMapper;
@@ -27,6 +27,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicEntity> impl
     @Override
     public List<TopicEntity> querySelfPosts(PageModel pageModel) {
         String uuid = LoginUser.getCurrentUser().getUserEntity().getUuid();
-        return mapper.querySelfPosts(pageModel.getOffset(), pageModel.getCount(), uuid);
+        return mapper.querySelfPosts(pageModel.getOffset(), pageModel.getCurrentCount(), uuid);
     }
 }

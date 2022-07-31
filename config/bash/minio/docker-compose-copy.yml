@@ -1,0 +1,21 @@
+version: '3'
+services:
+  minio:
+    image: minio/minio
+    hostname: "minio"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin #控制台登录账号
+      MINIO_ROOT_PASSWORD: Tt160494917@ #控制台登录密码
+      #新版minio docker部署，释放的ip为docker内的ip，所以需要更改环境变量
+#      MINIO_SERVER_URL: http://127.0.0.1:9000 #控制台地址
+    volumes:
+      - /www/docker/minio/data:/data      #存储路径
+      - /www/docker/minio/config:/root/.minio/   #配置文件
+    command: server --console-address ':9001' /data
+    privileged: true
+    restart: always
+
+#  docker-compose up -d

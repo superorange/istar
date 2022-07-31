@@ -19,15 +19,16 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
                 .apiInfo(new ApiInfoBuilder()
-                        .title("智慧I-Study")
+                        .title("篝火-年轻人的社交圈")
                         .description("测试swagger2接口文档生成工具")
                         .termsOfServiceUrl("https://www.xx.com/")
+
 //                        .contact("xx@qq.com")
 
                         .version("3.0")
                         .build())
                 //分组名称
-                .groupName("istar接口文档")
+                .groupName("api接口文档")
                 .select()
                 //这里指定Controller扫描包路径
                 .apis(RequestHandlerSelectors.basePackage("com.example.istar.controller"))

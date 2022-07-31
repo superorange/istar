@@ -5,10 +5,11 @@ import cloud.tianai.captcha.spring.application.ImageCaptchaApplication;
 import cloud.tianai.captcha.spring.vo.CaptchaResponse;
 import cloud.tianai.captcha.spring.vo.ImageCaptchaVO;
 import cloud.tianai.captcha.validator.common.model.dto.ImageCaptchaTrack;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.example.istar.common.Code;
 import com.example.istar.common.RedisConst;
-import com.example.istar.dto.CodeModel;
+import com.example.istar.dto.impl.CodeModel;
 import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/code")
 public class CodeController {
     @Resource
-    private RedisCache redisCache;
+    private RedisUtil redisUtil;
     @Resource
     private ImageCaptchaApplication imageCaptchaApplication;
 
@@ -32,13 +33,11 @@ public class CodeController {
         if (model.isBadFormat()) {
             throw Exp.from(ResultCode.ERROR_PARAM);
         }
-        ///TODO 获取之前应该校验一下
-        switch (model.getTag()) {
-            case RedisConst.LOGIN:
-                return sendLoginCode(model);
-            default:
-                return R.fail("未知的标签");
+        String cacheObject = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_PRE_CHECK + model.getData());
+        if (ObjectUtil.isNull(cacheObject)) {
+            throw Exp.from(ResultCode.OPERATION_FORBIDDEN);
         }
+        return sendLoginCode(model);
     }
 
     @ApiOperation(value = "生成滑块验证", notes = "用户生成滑块验证")
@@ -76,11 +75,11 @@ public class CodeController {
 
     private R sendLoginCode(CodeModel model) {
         //1,先看redis里面是否有，有就不用再次发送
-        String redisCode = redisCache.getCacheObject(RedisConst.REDIS_CODE_LOGIN + model.getKey());
+        String redisCode = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
         //2,redis没有，则发送并且将其加入到redis中
         if (redisCode == null) {
             redisCode = RandomUtil.randomNumbers(6);
-            redisCache.setCacheObject(RedisConst.REDIS_CODE_LOGIN + model.getKey(), redisCode, 5, TimeUnit.MINUTES);
+            redisUtil.setCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData(), redisCode, 5, TimeUnit.MINUTES);
         }
         return R.ok(Code.CODE_SEND_SUCCESS, redisCode);
     }

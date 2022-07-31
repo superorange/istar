@@ -32,9 +32,11 @@ public class TopicEntity implements Serializable {
 
     @ApiModelProperty("主键")
     @TableId(value = "id", type = IdType.AUTO)
+    @JSONField(serialize = false)
     private Long id;
 
     @ApiModelProperty("用户识别码")
+    @JSONField(serialize = false)
     private String uuid;
 
     @ApiModelProperty("文章id")
@@ -59,7 +61,7 @@ public class TopicEntity implements Serializable {
 
 
     @ApiModelProperty("点赞数")
-    private Long likeCount;
+    private Integer likeCount;
 
     @ApiModelProperty("状态0正常,-1禁用,1删除")
     @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
@@ -68,6 +70,10 @@ public class TopicEntity implements Serializable {
     @ApiModelProperty("创建时间")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long createTime;
+
+    @ApiModelProperty("创建时间")
+    @JSONField(serializeUsing = LocalDateTimeSerializer.class)
+    private Long modifyTime;
 
 
 }

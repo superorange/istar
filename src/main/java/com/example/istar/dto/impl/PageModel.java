@@ -1,9 +1,9 @@
-package com.example.istar.dto;
+package com.example.istar.dto.impl;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -12,23 +12,23 @@ import lombok.Setter;
  */
 @NoArgsConstructor()
 @AllArgsConstructor()
+@Setter
+@Getter
 @ApiModel(value = "分页查询入参")
 public class PageModel {
-    public void setIndex(Integer index) {
-        this.index = index;
-    }
-
-    public void setCount(Integer count) {
-        this.count = count;
-    }
-
     @ApiModelProperty(value = "页数", dataType = "Integer")
     private Integer index;
     @ApiModelProperty(value = "数量", dataType = "Integer")
     private Integer count;
+    @ApiModelProperty(value = "搜索关键字(目前支持title搜索，暂时不支持内容搜索)")
+    private String query;
+    @ApiModelProperty(value = "排序方式(asc或者desc,默认降序desc)")
+    private String order;
+
 
     ///TODO 后面要改
-    public int getIndex() {
+    @ApiModelProperty(hidden = true)
+    public int getCurrentIndex() {
         int safe = 0;
         if (index != null && index >= 0) {
             safe = this.index;
@@ -36,7 +36,8 @@ public class PageModel {
         return safe;
     }
 
-    public int getCount() {
+    @ApiModelProperty(hidden = true)
+    public int getCurrentCount() {
         int safe = 30;
         if (count != null && count >= 0) {
             safe = this.count;
@@ -46,7 +47,20 @@ public class PageModel {
 
     @ApiModelProperty(hidden = true)
     public int getOffset() {
-        return getIndex() * getCount();
+        return getCurrentIndex() * getCurrentCount();
+    }
+
+    @ApiModelProperty(hidden = true)
+    public boolean isAsc() {
+        return "asc".equalsIgnoreCase(order);
+    }
+
+    @ApiModelProperty(hidden = true)
+    public static PageModel avoidNull(PageModel pageModel) {
+        if (pageModel == null) {
+            pageModel = new PageModel();
+        }
+        return pageModel;
     }
 
 

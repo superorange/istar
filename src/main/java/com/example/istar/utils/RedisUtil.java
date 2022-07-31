@@ -17,7 +17,7 @@ import javax.annotation.Resource;
  * @author ruoyi
  **/
 @Component
-public class RedisCache {
+public class RedisUtil {
     @Resource
     public RedisTemplate redisTemplate;
 
@@ -28,7 +28,6 @@ public class RedisCache {
      * @param value 缓存的值
      */
     public <T> void setCacheObject(final String key, final T value) {
-
         redisTemplate.opsForValue().set(key, value);
     }
 

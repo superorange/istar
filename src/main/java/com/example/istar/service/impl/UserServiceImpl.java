@@ -1,6 +1,6 @@
 package com.example.istar.service.impl;
 
-import com.example.istar.dto.PageModel;
+import com.example.istar.dto.impl.PageModel;
 import com.example.istar.entity.UserEntity;
 import com.example.istar.mapper.UserMapper;
 import com.example.istar.service.IUserService;
@@ -25,6 +25,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     @Override
     public List<UserEntity> queryUsers(PageModel model) {
-        return userMapper.queryUserList(model.getOffset(), model.getCount());
+        return userMapper.queryUserList(model.getOffset(), model.getCurrentCount());
     }
 }

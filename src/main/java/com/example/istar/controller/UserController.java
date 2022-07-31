@@ -4,11 +4,11 @@ import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.istar.common.RedisConst;
 import com.example.istar.common.Roles;
+import com.example.istar.dto.impl.UserWrapper;
 import com.example.istar.entity.UserEntity;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.dto.UserWrapper;
-import com.example.istar.dto.PageModel;
-import com.example.istar.dto.LoginModel;
+import com.example.istar.dto.impl.PageModel;
+import com.example.istar.dto.impl.LoginModel;
 import com.example.istar.service.impl.UserServiceImpl;
 import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
@@ -39,7 +39,7 @@ public class UserController {
     @Resource
     private AuthenticationManager authenticationManager;
     @Resource
-    private RedisCache redisCache;
+    private RedisUtil redisUtil;
 
 
     @PostMapping("/login")
@@ -49,15 +49,15 @@ public class UserController {
             throw Exp.from(ResultCode.ERROR_PARAM);
         }
         ///1, 校验验证码
-        String redisCode = redisCache.getCacheObject(RedisConst.REDIS_CODE_LOGIN + model.getKey());
+        String redisCode = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
         if (redisCode != null && redisCode.equals(model.getCode())) {
             ///检验成功，删除验证码
-            redisCache.deleteObject(RedisConst.REDIS_CODE_LOGIN + model.getKey());
+            redisUtil.deleteObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
             UserEntity userEntity = null;
-            if (RegexTool.isEmail(model.getKey())) {
-                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("email", model.getKey()));
-            } else if (RegexTool.isMobiles(model.getKey())) {
-                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("mobile", model.getKey()));
+            if (RegexTool.isEmail(model.getData())) {
+                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("email", model.getData()));
+            } else if (RegexTool.isMobiles(model.getData())) {
+                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("mobile", model.getData()));
             }
             ///新用户
             if (userEntity == null) {
@@ -67,12 +67,12 @@ public class UserController {
                     throw Exp.from(ResultCode.REGISTER_ERROR);
                 }
             }
-            String token = JwtUtil.generateToken(userEntity.getUuid());
+            String token = SafeUtil.generateToken(userEntity.getUuid());
             if (token == null) {
                 throw Exp.from(ResultCode.FAILED);
             }
             LoginUser loginUser = new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
-            redisCache.setCacheObject(RedisConst.REDIS_LOGIN_TOKEN + userEntity.getUuid(), loginUser, JwtUtil.EXPIRE_TIME, JwtUtil.TIME_UNIT);
+            redisUtil.setCacheObject(RedisConst.REDIS_LOGIN_INFO + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
             return R.ok(new UserWrapper(token, userEntity));
         }
         throw Exp.from(ResultCode.CODE_ERROR);
@@ -82,10 +82,10 @@ public class UserController {
 
     private UserEntity generateUser(LoginModel model) {
         UserEntity userEntity = new UserEntity();
-        if (RegexTool.isEmail(model.getKey())) {
-            userEntity.setEmail(model.getKey());
-        } else if (RegexTool.isMobiles(model.getKey())) {
-            userEntity.setMobile(model.getKey());
+        if (RegexTool.isEmail(model.getData())) {
+            userEntity.setEmail(model.getData());
+        } else if (RegexTool.isMobiles(model.getData())) {
+            userEntity.setMobile(model.getData());
         }
         userEntity.setUuid(UUID.randomUUID().toString(false));
         userEntity.setCreateTime(System.currentTimeMillis());
@@ -136,7 +136,7 @@ public class UserController {
             if (one != null) {
                 one.setStatus(-1);
                 boolean update = userService.updateById(one);
-                redisCache.deleteObject(RedisConst.REDIS_LOGIN_TOKEN + loginUser.getUserEntity().getUuid());
+                redisUtil.deleteObject(RedisConst.REDIS_LOGIN_INFO + loginUser.getUserEntity().getUuid());
                 return update ? R.ok() : R.fail(ResultCode.OPERATION_FAILED);
             }
             return R.fail();

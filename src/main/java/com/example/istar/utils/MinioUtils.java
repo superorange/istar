@@ -1,7 +1,6 @@
 package com.example.istar.utils;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.crypto.digest.MD5;
 import io.minio.*;
 import io.minio.http.Method;
 import io.minio.messages.Bucket;
@@ -263,9 +262,9 @@ public class MinioUtils {
             }
             String[] split = fileName.split("\\.");
             if (split.length > 1) {
-                fileId = MD5.create().digestHex(split[0]) + "_" + System.currentTimeMillis() + "." + split[1];
+                fileId = CommonUtil.generateTimeId(split[0]) + "." + split[1];
             } else {
-                fileId = MD5.create().digestHex(fileName) + System.currentTimeMillis();
+                fileId = CommonUtil.generateTimeId(fileName);
             }
             InputStream inputStream = file.getInputStream();
             ObjectWriteResponse objectWriteResponse = minioClient.putObject(
@@ -443,7 +442,7 @@ public class MinioUtils {
         private String fileOriginName;
         private String fileBucketName;
 
-        public String getShortId() {
+        public String getFileId() {
             if (fileBucketName.contains(".")) {
                 return fileBucketName.substring(0, fileBucketName.lastIndexOf("."));
             }

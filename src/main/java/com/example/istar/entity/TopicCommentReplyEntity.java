@@ -55,13 +55,13 @@ public class TopicCommentReplyEntity implements Serializable {
     @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
     private Integer status;
 
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty(value = "创建时间",dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long createTime;
 
 
     @ApiModelProperty("点赞数")
-    private Long likeCount;
+    private Integer likeCount;
 
 
 }

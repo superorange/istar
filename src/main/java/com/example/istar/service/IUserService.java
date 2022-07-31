@@ -1,6 +1,6 @@
 package com.example.istar.service;
 
-import com.example.istar.dto.PageModel;
+import com.example.istar.dto.impl.PageModel;
 import com.example.istar.entity.UserEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 

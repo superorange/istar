@@ -4,8 +4,8 @@ import cn.hutool.core.util.ObjectUtil;
 import com.example.istar.common.PermitUrl;
 import com.example.istar.common.RedisConst;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.utils.JwtUtil;
-import com.example.istar.utils.RedisCache;
+import com.example.istar.utils.SafeUtil;
+import com.example.istar.utils.RedisUtil;
 import com.example.istar.utils.ResponseUtils;
 import com.example.istar.utils.ResultCode;
 import org.springframework.lang.NonNull;
@@ -31,7 +31,7 @@ import java.util.Arrays;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Resource
-    private RedisCache redisCache;
+    private RedisUtil redisUtil;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -45,9 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = request.getHeader("Authorization");
         if (ObjectUtil.isNotEmpty(token)) {
             try {
-                String uuid = JwtUtil.getUuid(token);
+                String uuid = SafeUtil.getUuid(token);
                 if (!ObjectUtils.isEmpty(uuid)) {
-                    LoginUser loginUser = redisCache.getCacheObject(RedisConst.REDIS_LOGIN_TOKEN + uuid);
+                    LoginUser loginUser = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_INFO + uuid);
                     if (loginUser != null) {
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);

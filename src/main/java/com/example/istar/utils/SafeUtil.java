@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class JwtUtil {
+public class SafeUtil {
     public static final int EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000;
     public static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
 
