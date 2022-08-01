@@ -1,18 +1,19 @@
 package com.example.istar.controller;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.Roles;
-import com.example.istar.dto.impl.TopicCommentModel;
+import com.example.istar.dto.impl.PageWrapperDto;
+import com.example.istar.entity.TopicCommentReplyEntity;
+import com.example.istar.model.QueryPageModel;
+import com.example.istar.model.TopicCommentModel;
 import com.example.istar.entity.TopicCommentEntity;
 import com.example.istar.entity.TopicEntity;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.service.impl.TopicCommentServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
-import com.example.istar.utils.CommonUtil;
-import com.example.istar.utils.Exp;
-import com.example.istar.utils.R;
-import com.example.istar.utils.ResultCode;
+import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -48,31 +49,40 @@ public class TopicCommentController {
         wrapper.eq(TopicEntity::getTopicId, model.getTopicId());
         TopicEntity topicEntity = topicService.getOne(wrapper);
         //// 判断主题是否存在
-        if (topicEntity == null || topicEntity.getStatus() != 0) {
+        if (topicEntity == null) {
             throw Exp.from(ResultCode.NOT_FOUND);
+        } else if (topicEntity.getStatus() != 0) {
+            throw Exp.from(ResultCode.RESOURCE_FORBIDDEN);
         }
-        ////新增一个评论对象
+        //新增一个评论对象
         TopicCommentEntity commentEntity = new TopicCommentEntity();
         commentEntity.setUuid(LoginUser.getUuid());
         commentEntity.setTopicId(topicEntity.getTopicId());
-        //如果主题里面评论ID为空，则评论ID为主题ID
-        if (StrUtil.isEmpty(topicEntity.getCommentId())) {
-            commentEntity.setCommentId(CommonUtil.generateTimeId());
-        } else {
-            commentEntity.setCommentId(topicEntity.getCommentId());
-        }
+        //设置评论ID
+        commentEntity.setCommentId(CommonUtil.generateTimeId());
         commentEntity.setContent(model.getContent());
         commentEntity.setStatus(0);
         commentEntity.setCreateTime(System.currentTimeMillis());
-        boolean b = false;
         boolean a = topicCommentService.save(commentEntity);
-        if (a) {
-            topicEntity.setCommentId(commentEntity.getCommentId());
-            b = topicService.updateById(topicEntity);
-        }
-        return a == b && a ? R.ok(commentEntity) : R.fail(ResultCode.OPERATION_FAILED);
+        return a ? R.ok(commentEntity) : R.fail(ResultCode.OPERATION_FAILED);
     }
 
+    @ApiOperation(value = "分页获取主题下评论")
+    @GetMapping("")
+    public R<PageWrapperDto<TopicCommentEntity>> getComments(QueryPageModel model) throws Exp {
+        if (ObjectUtil.isNull(model)) {
+            model = new QueryPageModel();
+        }
+        model.check();
+        LambdaQueryWrapper<TopicCommentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(TopicCommentEntity::getTopicId, model.getQ())
+                .eq(TopicCommentEntity::getStatus, 0)
+                .orderBy(true, model.isAsc(), TopicCommentEntity::getId);
+        //排序
+        Page<TopicCommentEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
+        Page<TopicCommentEntity> entityPage = topicCommentService.page(page, wrapper);
+        return R.ok(PageWrapperDto.wrapPage(entityPage));
+    }
 
     /**
      * 删除评论

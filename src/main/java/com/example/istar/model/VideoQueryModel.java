@@ -1,4 +1,6 @@
-package com.example.istar.dto.impl;
+package com.example.istar.model;
+
+import com.example.istar.model.PageModel;
 
 /**
  * @author tian

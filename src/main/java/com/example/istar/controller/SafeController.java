@@ -1,7 +1,7 @@
 package com.example.istar.controller;
 
 import com.example.istar.common.RedisConst;
-import com.example.istar.dto.impl.CheckModel;
+import com.example.istar.model.CheckModel;
 import com.example.istar.utils.CommonUtil;
 import com.example.istar.utils.R;
 import com.example.istar.utils.RedisUtil;

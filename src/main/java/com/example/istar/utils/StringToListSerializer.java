@@ -9,6 +9,9 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * @author tian
+ */
 public class StringToListSerializer implements ObjectSerializer {
     @Override
     public void write(JSONSerializer jsonSerializer, Object o, Object o1, Type type, int i) throws IOException {

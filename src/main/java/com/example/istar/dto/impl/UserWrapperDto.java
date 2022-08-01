@@ -6,9 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 
+/**
+ * @author tian
+ */
 @Data
 @AllArgsConstructor
-public class UserWrapper {
+public class UserWrapperDto {
     @ApiModelProperty(value = "用户JWT-Token")
     private final String token;
     @ApiModelProperty(value = "用户实体信息")

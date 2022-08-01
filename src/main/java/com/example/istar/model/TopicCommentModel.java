@@ -1,11 +1,13 @@
-package com.example.istar.dto.impl;
+package com.example.istar.model;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.example.istar.dto.RequestCheckerInterface;
+import com.example.istar.model.inter.RequestCheckerInterface;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+/**
+ * @author tian
+ */
 @Data
 public class TopicCommentModel implements RequestCheckerInterface {
 

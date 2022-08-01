@@ -1,6 +1,6 @@
 package com.example.istar.service.impl;
 
-import com.example.istar.dto.impl.PageModel;
+import com.example.istar.model.PageModel;
 import com.example.istar.entity.TopicEntity;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.mapper.TopicMapper;

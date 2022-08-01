@@ -1,24 +1,19 @@
-package com.example.istar.dto.impl;
+package com.example.istar.model;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.example.istar.dto.RequestCheckerInterface;
+import com.example.istar.model.inter.RequestCheckerInterface;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+/**
+ * @author tian
+ */
 @Data
 public class TopicCommentReplayModel implements RequestCheckerInterface {
-
-    @ApiModelProperty("评论用户ID")
-    private String uuid;
-
-    @ApiModelProperty("被回复评论的ID")
+    @ApiModelProperty("被评论的ID")
     private String commentId;
 
-    @ApiModelProperty("回复评论ID")
-    private String replyId;
-
-    @ApiModelProperty("被回复的回复评论ID")
+    @ApiModelProperty("被回复的ID")
     private String toReplyId;
 
     @ApiModelProperty("回复内容")

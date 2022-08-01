@@ -4,11 +4,11 @@ import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.istar.common.RedisConst;
 import com.example.istar.common.Roles;
-import com.example.istar.dto.impl.UserWrapper;
+import com.example.istar.dto.impl.UserWrapperDto;
 import com.example.istar.entity.UserEntity;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.dto.impl.PageModel;
-import com.example.istar.dto.impl.LoginModel;
+import com.example.istar.model.PageModel;
+import com.example.istar.model.LoginModel;
 import com.example.istar.service.impl.UserServiceImpl;
 import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
@@ -44,10 +44,8 @@ public class UserController {
 
     @PostMapping("/login")
     @ApiOperation(value = "注册/登录", notes = "用户注册,或者登录")
-    public R<UserWrapper> preRegister(@RequestBody LoginModel model) throws Exp {
-        if (model.isBadFormat()) {
-            throw Exp.from(ResultCode.ERROR_PARAM);
-        }
+    public R<UserWrapperDto> preRegister(@RequestBody LoginModel model) throws Exp {
+        model.check();
         ///1, 校验验证码
         String redisCode = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
         if (redisCode != null && redisCode.equals(model.getCode())) {
@@ -73,7 +71,7 @@ public class UserController {
             }
             LoginUser loginUser = new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
             redisUtil.setCacheObject(RedisConst.REDIS_LOGIN_INFO + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
-            return R.ok(new UserWrapper(token, userEntity));
+            return R.ok(new UserWrapperDto(token, userEntity));
         }
         throw Exp.from(ResultCode.CODE_ERROR);
 

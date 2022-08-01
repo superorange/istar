@@ -56,9 +56,6 @@ public class TopicEntity implements Serializable {
     @ApiModelProperty("内容")
     private String content;
 
-    @ApiModelProperty("评论表--评论ID")
-    private String commentId;
-
 
     @ApiModelProperty("点赞数")
     private Integer likeCount;

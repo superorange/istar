@@ -1,7 +1,10 @@
 package com.example.istar.handler;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.example.istar.entity.UserEntity;
+import com.example.istar.utils.Exp;
+import com.example.istar.utils.ResultCode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,13 +12,18 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author tian
+ */
 @Data
 @NoArgsConstructor
-public class LoginUser implements UserDetails {
+public class LoginUser implements UserDetails, Serializable {
+    private static final long serialVersionUID = 1L;
     private UserEntity userEntity;
 
     public LoginUser(UserEntity userEntity, List<String> roles) {
@@ -70,15 +78,27 @@ public class LoginUser implements UserDetails {
         return (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    public static boolean isSelf(String uuid) {
-        return uuid != null && ((LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserEntity().getUuid().equals(uuid);
+    public static LoginUser getCurrentUserAndThrow() throws Exp {
+        LoginUser principal = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (ObjectUtil.isNull(principal)) {
+            throw Exp.from(ResultCode.AUTH_FAILED);
+        }
+        return principal;
+    }
+
+    public static boolean isSelf(String uuid) throws Exp {
+        return uuid != null && LoginUser.getUuidAndThrow().equals(uuid);
     }
 
     public static String getUuid() {
         return getCurrentUser().getUserEntity().getUuid();
     }
 
-    public String getUid() {
-        return this.userEntity.getUuid();
+    public static String getUuidAndThrow() throws Exp {
+        String uuid = getCurrentUser().getUserEntity().getUuid();
+        if (ObjectUtil.isNull(uuid)) {
+            throw Exp.from(ResultCode.AUTH_FAILED);
+        }
+        return uuid;
     }
 }

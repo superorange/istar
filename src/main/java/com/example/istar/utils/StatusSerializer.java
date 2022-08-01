@@ -6,6 +6,9 @@ import com.alibaba.fastjson.serializer.ObjectSerializer;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
+/**
+ * @author tian
+ */
 public class StatusSerializer implements ObjectSerializer {
     @Override
     public void write(JSONSerializer jsonSerializer, Object o, Object o1, Type type, int i) throws IOException {

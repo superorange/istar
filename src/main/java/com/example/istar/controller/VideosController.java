@@ -1,7 +1,7 @@
 package com.example.istar.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.example.istar.dto.impl.VideoQueryModel;
+import com.example.istar.model.VideoQueryModel;
 import com.example.istar.entity.VideoEntity;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.service.impl.VideosServiceImpl;

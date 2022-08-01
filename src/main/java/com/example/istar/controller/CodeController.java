@@ -9,7 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.example.istar.common.Code;
 import com.example.istar.common.RedisConst;
-import com.example.istar.dto.impl.CodeModel;
+import com.example.istar.model.CodeModel;
 import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,13 +30,13 @@ public class CodeController {
     @ApiOperation(value = "发送验证码", notes = "用户发送验证码")
     @PostMapping("/send")
     public R sendCode(@RequestBody CodeModel model) throws Exp {
-        if (model.isBadFormat()) {
-            throw Exp.from(ResultCode.ERROR_PARAM);
-        }
-        String cacheObject = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_PRE_CHECK + model.getData());
+        model.check();
+        String key = RedisConst.REDIS_LOGIN_PRE_CHECK + model.getData();
+        String cacheObject = redisUtil.getCacheObject(key);
         if (ObjectUtil.isNull(cacheObject)) {
             throw Exp.from(ResultCode.OPERATION_FORBIDDEN);
         }
+        redisUtil.deleteObject(key);
         return sendLoginCode(model);
     }
 

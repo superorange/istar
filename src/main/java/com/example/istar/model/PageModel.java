@@ -1,4 +1,4 @@
-package com.example.istar.dto.impl;
+package com.example.istar.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -20,13 +20,13 @@ public class PageModel {
     private Integer index;
     @ApiModelProperty(value = "数量", dataType = "Integer")
     private Integer count;
-    @ApiModelProperty(value = "搜索关键字(目前支持title搜索，暂时不支持内容搜索)")
-    private String query;
     @ApiModelProperty(value = "排序方式(asc或者desc,默认降序desc)")
     private String order;
 
 
-    ///TODO 后面要改
+    /**
+     * /TODO 后面要改
+     */
     @ApiModelProperty(hidden = true)
     public int getCurrentIndex() {
         int safe = 0;
@@ -53,14 +53,6 @@ public class PageModel {
     @ApiModelProperty(hidden = true)
     public boolean isAsc() {
         return "asc".equalsIgnoreCase(order);
-    }
-
-    @ApiModelProperty(hidden = true)
-    public static PageModel avoidNull(PageModel pageModel) {
-        if (pageModel == null) {
-            pageModel = new PageModel();
-        }
-        return pageModel;
     }
 
 

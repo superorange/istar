@@ -47,7 +47,6 @@ create table if not exists `t_topic`
     `video_id`    text        null     default null comment '视频ID列表，用分号分隔',
     `title`       text        null     default null comment '标题',
     `content`     text        null     default null comment '内容',
-    `comment_id`  varchar(64) null     default null comment '评论表--评论ID',
     `status`      tinyint     not null default 0 comment '状态0正常,-1禁用,1删除',
     `like_count`  int         not null default 0 comment '点赞数',
     `create_time` bigint      not null comment '创建时间',
@@ -76,7 +75,7 @@ create table if not exists `t_topic_comment`
     index `comment_id` (`comment_id`)
 ) engine = innodb
   default charset = UTF8MB4
-  collate UTF8MB4_GENERAL_CI comment '评论表';
+  collate UTF8MB4_GENERAL_CI comment '主题评论表';
 
 create table if not exists `t_topic_comment_reply`
 (
