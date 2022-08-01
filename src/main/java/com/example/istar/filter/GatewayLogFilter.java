@@ -17,16 +17,16 @@ import java.time.LocalDateTime;
 
 /**
  * 网关请求响应日志打印
+ * &#064;ConditionalOnProperty(
+ * prefix = "log",
+ * name = {"enabled"},
+ * havingValue = "true", // 关闭日志请在youlai-gateway.yaml设置 log.enabled=false
+ * matchIfMissing = true  // true表示缺少log.enabled属性也会加载该bean
+ * )
  *
  * @author <a href="mailto:xianrui0365@163.com">haoxr</a>
  * @date 2022/4/28 17:04
  */
-//@ConditionalOnProperty(
-//        prefix = "log",
-//        name = {"enabled"},
-//        havingValue = "true", // 关闭日志请在youlai-gateway.yaml设置 log.enabled=false
-//        matchIfMissing = true  // true表示缺少log.enabled属性也会加载该bean
-//)
 @Component
 @Slf4j
 public class GatewayLogFilter extends OncePerRequestFilter {
@@ -35,7 +35,7 @@ public class GatewayLogFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         System.out.println("GatewayLogFilter--RUNNING");
         TraceLog traceLog = new TraceLog();
-        traceLog.setRequestIP(request.getRemoteAddr());
+        traceLog.setRequestIp(request.getRemoteAddr());
         String url = request.getRequestURL().toString();
 
         if (request.getQueryString() != null) {
@@ -57,7 +57,7 @@ public class GatewayLogFilter extends OncePerRequestFilter {
 
     @Data
     public static class TraceLog {
-        private String requestIP;
+        private String requestIp;
 
         /**
          * 请求路径
@@ -103,7 +103,7 @@ public class GatewayLogFilter extends OncePerRequestFilter {
             return "\n--------请求日志-------\n" +
                     requestMethod + ' ' + requestUrl + "\n" +
                     "请求头:" + requestHeader + "\n" +
-                    "请求IP:" + requestIP + '\n' +
+                    "请求IP:" + requestIp + '\n' +
                     "执行耗时:" + executeTime + "毫秒";
         }
 

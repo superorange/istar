@@ -83,9 +83,9 @@ public class TopicCommentReplyController {
     public R<PageWrapperDto<TopicCommentReplyEntity>> getReplies(QueryPageModel model) throws Exp {
         model.check();
         LambdaQueryWrapper<TopicCommentReplyEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(TopicCommentReplyEntity::getCommentId, model.getQ())
-                .eq(TopicCommentReplyEntity::getStatus, 0)
-                .orderBy(true, model.isAsc(), TopicCommentReplyEntity::getId);
+        wrapper.eq(TopicCommentReplyEntity::getCommentId, model.getQ());
+        wrapper.eq(TopicCommentReplyEntity::getStatus, 0);
+        wrapper.orderBy(true, model.isAsc(), TopicCommentReplyEntity::getId);
         Page<TopicCommentReplyEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
         Page<TopicCommentReplyEntity> topicEntityPage = replyService.page(page, wrapper);
         return R.ok(PageWrapperDto.wrapPage(topicEntityPage));
@@ -107,7 +107,7 @@ public class TopicCommentReplyController {
             replyEntity.setStatus(3);
             return R.ok(replyService.updateById(replyEntity));
         }
-        throw Exp.from(5501, ResultCode.RESOURCE_FORBIDDEN.getMsg());
+        return R.fail(5501, ResultCode.RESOURCE_FORBIDDEN.getMsg());
     }
 
 

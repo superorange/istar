@@ -1,8 +1,6 @@
 package com.example.istar.model;
 
-import com.example.istar.model.PageModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

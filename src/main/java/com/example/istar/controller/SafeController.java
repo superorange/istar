@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+/**
+ * @author tian
+ */
 @RestController
 @Api(tags = "动态安全预检查")
 @RequestMapping("/safe")

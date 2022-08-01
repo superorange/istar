@@ -34,7 +34,7 @@ public class CodeController {
         String key = RedisConst.REDIS_LOGIN_PRE_CHECK + model.getData();
         String cacheObject = redisUtil.getCacheObject(key);
         if (ObjectUtil.isNull(cacheObject)) {
-            throw Exp.from(ResultCode.OPERATION_FORBIDDEN);
+            return R.fail(ResultCode.OPERATION_FORBIDDEN);
         }
         redisUtil.deleteObject(key);
         return sendLoginCode(model);

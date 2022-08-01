@@ -1,9 +1,12 @@
 package com.example.istar.controller;
 
 import cn.hutool.core.lang.UUID;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.RedisConst;
 import com.example.istar.common.Roles;
+import com.example.istar.dto.impl.PageWrapperDto;
 import com.example.istar.dto.impl.UserWrapperDto;
 import com.example.istar.entity.UserEntity;
 import com.example.istar.handler.LoginUser;
@@ -62,7 +65,7 @@ public class UserController {
                 userEntity = generateUser(model);
                 boolean save = userService.save(userEntity);
                 if (!save) {
-                    throw Exp.from(ResultCode.REGISTER_ERROR);
+                    return R.fail(ResultCode.REGISTER_ERROR);
                 }
             }
             String token = SafeUtil.generateToken(userEntity.getUuid());
@@ -73,7 +76,7 @@ public class UserController {
             redisUtil.setCacheObject(RedisConst.REDIS_LOGIN_INFO + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
             return R.ok(new UserWrapperDto(token, userEntity));
         }
-        throw Exp.from(ResultCode.CODE_ERROR);
+        return R.fail(ResultCode.CODE_ERROR);
 
 
     }
@@ -95,20 +98,27 @@ public class UserController {
         return userEntity;
     }
 
-    ///TODO hasRole 默认增加ROLE_前缀
-//    @PreAuthorize("hasAuthority('ROLE_ROOT1')")
+    /**
+     * /TODO hasRole 默认增加ROLE_前缀
+     * <p>
+     * //@PreAuthorize("hasAuthority('ROLE_ROOT1')")
+     */
     @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
     @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("")
-    public R<List<UserEntity>> getUsers(PageModel pageModel) {
-        return R.ok(userService.queryUsers(pageModel));
+    public R<PageWrapperDto<UserEntity>> getUsers(PageModel pageModel) {
+        LambdaQueryWrapper<UserEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderBy(true, pageModel.isAsc(), UserEntity::getId);
+        Page<UserEntity> page = new Page<>(pageModel.getCurrentIndex(), pageModel.getCurrentCount());
+        Page<UserEntity> entityPage = userService.page(page, queryWrapper);
+        return R.ok(PageWrapperDto.wrapPage(entityPage));
     }
 
     @ApiOperation(value = "获取单个用户信息", notes = "获取单个用户信息")
     @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("/{uuid}")
     public R<UserEntity> getUser(@PathVariable String uuid) {
-        return R.ok(userService.getOne(new QueryWrapper<UserEntity>().eq("uuid", uuid)));
+        return R.ok(userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUuid, uuid)));
     }
 
     /**
@@ -140,8 +150,7 @@ public class UserController {
             return R.fail();
 
         }
-        ///不是抛出异常
-        throw Exp.from(ResultCode.OPERATION_FORBIDDEN);
+        return R.fail(ResultCode.OPERATION_FORBIDDEN);
     }
 
 

@@ -15,5 +15,4 @@ import java.util.List;
  * @since 2022-07-03
  */
 public interface ITopicService extends IService<TopicEntity> {
-    List<TopicEntity> querySelfPosts(PageModel pageModel);
 }

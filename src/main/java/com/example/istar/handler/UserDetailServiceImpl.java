@@ -12,6 +12,9 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.util.Arrays;
 
+/**
+ * @author tian
+ */
 @Service
 public class UserDetailServiceImpl implements UserDetailsService {
     @Resource

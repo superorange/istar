@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.istar.common.Const;
 import com.example.istar.common.Roles;
 import com.example.istar.dto.impl.*;
 import com.example.istar.entity.PictureEntity;
@@ -51,7 +52,6 @@ public class TopicController {
     /**
      * 自己可见
      */
-    private final String SELF = "self";
     @Resource
     private MinioUtils minioUtil;
 
@@ -147,7 +147,7 @@ public class TopicController {
         //从数据库查询数据
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         //如果是查询自己的
-        if (SELF.equals(model.getOwner())) {
+        if (Const.SELF.equals(model.getOwner())) {
             LoginUser currentUser = LoginUser.getCurrentUser();
             if (ObjectUtil.isNull(currentUser)) {
                 throw Exp.from(ResultCode.AUTH_FAILED);

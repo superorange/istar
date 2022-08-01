@@ -15,5 +15,4 @@ import java.util.List;
  * @since 2022-04-18
  */
 public interface IUserService extends IService<UserEntity> {
-    List<UserEntity> queryUsers(PageModel model);
 }

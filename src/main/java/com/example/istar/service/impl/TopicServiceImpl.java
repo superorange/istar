@@ -21,12 +21,5 @@ import java.util.List;
  */
 @Service
 public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicEntity> implements ITopicService {
-    @Resource
-    private TopicMapper mapper;
 
-    @Override
-    public List<TopicEntity> querySelfPosts(PageModel pageModel) {
-        String uuid = LoginUser.getCurrentUser().getUserEntity().getUuid();
-        return mapper.querySelfPosts(pageModel.getOffset(), pageModel.getCurrentCount(), uuid);
-    }
 }

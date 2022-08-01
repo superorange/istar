@@ -11,7 +11,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-///TODO 403 授权失败
+/**
+ * /TODO 403 授权失败
+ *
+ * @author tian
+ */
 @Component
 public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
     @Override

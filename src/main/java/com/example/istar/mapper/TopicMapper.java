@@ -17,6 +17,5 @@ import java.util.List;
  */
 @Mapper
 public interface TopicMapper extends BaseMapper<TopicEntity> {
-    List<TopicEntity> querySelfPosts(@Param("index") Integer index, @Param("size") Integer size, String uuid);
 
 }

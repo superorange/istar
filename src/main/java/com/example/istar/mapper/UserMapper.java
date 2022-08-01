@@ -17,7 +17,4 @@ import java.util.List;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<UserEntity> {
-    List<UserEntity> queryUserList(@Param("index") Integer index, @Param("size") Integer size);
-
-    Long queryTotal();
 }

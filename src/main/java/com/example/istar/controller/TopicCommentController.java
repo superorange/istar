@@ -50,9 +50,9 @@ public class TopicCommentController {
         TopicEntity topicEntity = topicService.getOne(wrapper);
         //// 判断主题是否存在
         if (topicEntity == null) {
-            throw Exp.from(ResultCode.NOT_FOUND);
+            return R.fail(ResultCode.NOT_FOUND);
         } else if (topicEntity.getStatus() != 0) {
-            throw Exp.from(ResultCode.RESOURCE_FORBIDDEN);
+            return R.fail(ResultCode.RESOURCE_FORBIDDEN);
         }
         //新增一个评论对象
         TopicCommentEntity commentEntity = new TopicCommentEntity();
@@ -75,9 +75,9 @@ public class TopicCommentController {
         }
         model.check();
         LambdaQueryWrapper<TopicCommentEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(TopicCommentEntity::getTopicId, model.getQ())
-                .eq(TopicCommentEntity::getStatus, 0)
-                .orderBy(true, model.isAsc(), TopicCommentEntity::getId);
+        wrapper.eq(TopicCommentEntity::getTopicId, model.getQ());
+        wrapper.eq(TopicCommentEntity::getStatus, 0);
+        wrapper.orderBy(true, model.isAsc(), TopicCommentEntity::getId);
         //排序
         Page<TopicCommentEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
         Page<TopicCommentEntity> entityPage = topicCommentService.page(page, wrapper);
@@ -95,7 +95,7 @@ public class TopicCommentController {
         wrapper.eq(TopicCommentEntity::getCommentId, commentId);
         TopicCommentEntity entity = topicCommentService.getOne(wrapper);
         if (entity == null) {
-            throw Exp.from(ResultCode.NOT_FOUND);
+            return R.fail(ResultCode.NOT_FOUND);
         }
         if (Roles.isSuperAdmin()) {
             entity.setStatus(-3);
@@ -104,7 +104,7 @@ public class TopicCommentController {
             entity.setStatus(3);
             return R.ok(topicCommentService.updateById(entity));
         }
-        throw Exp.from(ResultCode.PERMISSION_FAILED);
+        return R.fail(ResultCode.PERMISSION_FAILED);
 
     }
 }

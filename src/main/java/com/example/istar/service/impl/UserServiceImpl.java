@@ -20,11 +20,5 @@ import java.util.List;
  */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements IUserService {
-    @Resource
-    private UserMapper userMapper;
 
-    @Override
-    public List<UserEntity> queryUsers(PageModel model) {
-        return userMapper.queryUserList(model.getOffset(), model.getCurrentCount());
-    }
 }

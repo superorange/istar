@@ -31,7 +31,9 @@ public class LoginUser implements UserDetails, Serializable {
         this.roles = roles;
     }
 
-    ///TODO 不能序列号存储到redis，会报错
+    /**
+     * /TODO 不能序列号存储到redis，会报错
+     */
     @JSONField(serialize = false)
     private Collection<SimpleGrantedAuthority> authorities;
     private List<String> roles;

@@ -5,7 +5,10 @@ import com.example.istar.handler.LoginUser;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-///TODO 自定义权限控制
+/**
+ * /TODO 自定义权限控制
+ * @author tian
+ */
 @Component("userExpression")
 public class UserExpression {
     public boolean hasPermission() {

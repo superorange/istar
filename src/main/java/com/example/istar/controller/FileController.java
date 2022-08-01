@@ -13,6 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.util.List;
 
+/**
+ * @author tian
+ */
 @Controller()
 @Api(tags = "文件上传")
 @RequestMapping("/files")
@@ -24,7 +27,6 @@ public class FileController {
     @ResponseBody
     @PostMapping("/upload")
     public R upload(@RequestParam("files") MultipartFile[] multipartFile) throws Exception {
-        System.out.println(multipartFile.length);
         List<MinioUtils.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(multipartFile);
         return R.ok(uploadWrappers);
     }
