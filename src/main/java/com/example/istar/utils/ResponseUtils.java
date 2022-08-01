@@ -9,6 +9,7 @@ import java.io.IOException;
 
 /**
  * 异常响应工具类
+ *
  * @author tian
  */
 public class ResponseUtils {
@@ -18,6 +19,7 @@ public class ResponseUtils {
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Cache-Control", "no-cache");
+        response.setStatus(resultCode.getCode());
         response.setCharacterEncoding("UTF-8");
         try {
             response.getWriter().write(jsonString);
