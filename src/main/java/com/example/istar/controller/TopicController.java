@@ -49,6 +49,8 @@ public class TopicController {
     private PicturesServiceImpl picturesService;
     @Resource
     private VideosServiceImpl videosService;
+    @Resource
+    private LikeUtil likeUtil;
     /**
      * 自己可见
      */
@@ -129,9 +131,11 @@ public class TopicController {
         TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
         if (topicEntity != null) {
             TopicEntityWrapperDto topicWrapper = new TopicEntityWrapperDto();
+
             BeanUtils.copyProperties(topicEntity, topicWrapper);
             ///查询图片信息
             expandPicAndVideo(topicWrapper);
+            topicWrapper.setLikeCount(likeUtil.getTopicLike(topicWrapper.getTopicId()));
             return R.ok(topicWrapper);
         }
         return R.ok();
@@ -172,6 +176,7 @@ public class TopicController {
         List<TopicEntityWrapperDto> wrappers = topicEntityPage.getRecords().stream().map(topic -> {
             TopicEntityWrapperDto topicWrapper = new TopicEntityWrapperDto();
             BeanUtils.copyProperties(topic, topicWrapper);
+            topicWrapper.setLikeCount(likeUtil.getTopicLike(topicWrapper.getTopicId()));
             return topicWrapper;
         }).collect(Collectors.toList());
         //查询帖子对应的视频和图片

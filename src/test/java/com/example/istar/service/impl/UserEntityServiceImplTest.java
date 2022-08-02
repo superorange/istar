@@ -33,8 +33,8 @@ class UserEntityServiceImplTest extends IstarApplicationTests {
                     userEntity.setPassword(MD5.create().digestHex(UUID.fastUUID().toString(false)));
                     userEntity.setEmail(faker2.internet().emailAddress());
                     userEntity.setMobile(faker1.phoneNumber().cellPhone());
-                    userEntity.setGmtCreate(System.currentTimeMillis());
-                    userEntity.setGmtModified(System.currentTimeMillis());
+                    userEntity.setCreateTime(System.currentTimeMillis());
+                    userEntity.setModifyTime(System.currentTimeMillis());
                     userEntity.setRoles("role_common_user");
                     try {
                         userMapper.insert(userEntity);
