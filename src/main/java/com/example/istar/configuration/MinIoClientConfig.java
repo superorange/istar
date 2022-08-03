@@ -1,6 +1,6 @@
 package com.example.istar.configuration;
 
-import com.example.istar.utils.MinioUtils;
+import com.example.istar.utils.MinioUtil;
 import io.minio.MinioClient;
 import lombok.Data;
 import org.springframework.context.annotation.Bean;
@@ -40,9 +40,9 @@ public class MinIoClientConfig {
     }
 
     @Bean
-    MinioUtils minioUtils() {
+    MinioUtil minioUtils() {
         try {
-            return new MinioUtils(endpoint, bucketName, 20, 20, minioClient);
+            return new MinioUtil(endpoint, bucketName, 20, 20, minioClient);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

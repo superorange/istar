@@ -1,7 +1,6 @@
 package com.example.istar.model;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.annotation.JSONField;
 import com.example.istar.model.inter.RequestCheckerInterface;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

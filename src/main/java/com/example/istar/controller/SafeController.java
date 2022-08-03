@@ -34,7 +34,7 @@ public class SafeController {
         //2,不安全，需要滑块验证
         //不安全情况下，先判断redis里面是否有缓存
         CheckModel checkModel = new CheckModel(CommonUtil.generateTimeId());
-        redisUtil.setCacheObject(RedisConst.auth_cid_by_key + data, checkModel.getCheckId());
+        redisUtil.setCacheObject(RedisConst.AUTH_CID_BY_KEY + data, checkModel.getCheckId());
         return R.ok(checkModel);
     }
 

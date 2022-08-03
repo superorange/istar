@@ -2,10 +2,10 @@ create database if not exists istar;
 use istar;
 DROP TABLE IF EXISTS `t_user`;
 drop table if exists `t_topic`;
-drop table if exists `t_topic_comment`;
-drop table if exists `t_topic_comment_reply`;
-drop table if exists `t_pictures`;
-drop table if exists `t_videos`;
+drop table if exists `t_comment`;
+drop table if exists `t_reply`;
+drop table if exists `t_picture`;
+drop table if exists `t_video`;
 
 CREATE TABLE if not exists `t_user`
 (
@@ -18,7 +18,7 @@ CREATE TABLE if not exists `t_user`
     `email`       varchar(128) NULL     DEFAULT NULL comment '邮箱',
     `password`    varchar(256) NULL     DEFAULT NULL comment '密码',
     `birthday`    date         NULL     DEFAULT NULL comment '生日',
-    `avatar_url`  varchar(256) NULL     DEFAULT NULL comment '头像地址',
+    `avatar`      varchar(256) NULL     DEFAULT NULL comment '头像地址',
     `openid`      char(28)     NULL     DEFAULT NULL comment '开放openid',
     `status`      tinyint      NOT NULL DEFAULT 0 comment '用户状态0正常-1禁用,1删除',
     `point`       bigint       NOT NULL DEFAULT 0 COMMENT '会员积分',
@@ -59,7 +59,7 @@ create table if not exists `t_topic`
   collate = UTF8MB4_GENERAL_CI;
 
 
-create table if not exists `t_topic_comment`
+create table if not exists `t_comment`
 (
     `id`          bigint      not null auto_increment comment '主键',
     `uuid`        varchar(64) not null comment '评论用户ID',
@@ -77,7 +77,7 @@ create table if not exists `t_topic_comment`
   default charset = UTF8MB4
   collate UTF8MB4_GENERAL_CI comment '主题评论表';
 
-create table if not exists `t_topic_comment_reply`
+create table if not exists `t_reply`
 (
     `id`            bigint      not null auto_increment comment '主键',
     `uuid`          varchar(64) not null comment '评论用户ID',
@@ -98,7 +98,7 @@ create table if not exists `t_topic_comment_reply`
 
 
 
-create table if not exists `t_pictures`
+create table if not exists `t_picture`
 (
     `id`          bigint       not null auto_increment comment '主键',
     `uuid`        varchar(64)  null     default null comment '用户识别码,可以为空',
@@ -115,7 +115,7 @@ create table if not exists `t_pictures`
   default charset = UTF8MB4
   collate UTF8MB4_GENERAL_CI;
 
-create table if not exists `t_videos`
+create table if not exists `t_video`
 (
     `id`          bigint       not null auto_increment comment '主键',
     `uuid`        varchar(64)  null     default null comment '用户识别码,可以为空',

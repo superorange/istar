@@ -3,9 +3,11 @@ package com.example.istar.dto.impl;
 import com.example.istar.entity.PictureEntity;
 import com.example.istar.entity.TopicEntity;
 import com.example.istar.entity.VideoEntity;
+import com.example.istar.handler.LoginUser;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.BeanUtils;
 
 import java.util.List;
 
@@ -23,4 +25,8 @@ public class TopicEntityWrapperDto extends TopicEntity {
     private String avatar;
     @ApiModelProperty(value = "用户昵称")
     private String nickName;
+
+
+
+
 }

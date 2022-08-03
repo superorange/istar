@@ -18,14 +18,14 @@ public class PageWrapperDto<T> {
     private Integer total;
     List<T> rows;
 
-    public static <T> PageWrapperDto<T> wrapRows(List<T> rows) {
+    public static <T> PageWrapperDto<T> wrap(List<T> rows) {
         PageWrapperDto<T> objectPageWrapperModel = new PageWrapperDto<>();
         objectPageWrapperModel.setRows(new ArrayList<>());
         objectPageWrapperModel.getRows().addAll(rows);
         return objectPageWrapperModel;
     }
 
-    public static <T> PageWrapperDto<T> wrapPage(Page<T> page) {
+    public static <T> PageWrapperDto<T> wrap(Page<T> page) {
         PageWrapperDto<T> objectPageWrapperModel = new PageWrapperDto<>();
         objectPageWrapperModel.setRows(new ArrayList<>());
         objectPageWrapperModel.getRows().addAll(page.getRecords());

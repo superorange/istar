@@ -16,7 +16,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 评论表
+ * 回复表
  * </p>
  *
  * @author tian
@@ -24,9 +24,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_topic_comment")
-@ApiModel(value = "TopicComment对象", description = "评论表")
-public class TopicCommentEntity implements Serializable {
+@TableName("t_reply")
+@ApiModel(value = "Reply对象", description = "回复表")
+public class ReplyEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -37,23 +37,32 @@ public class TopicCommentEntity implements Serializable {
     @ApiModelProperty("评论用户ID")
     private String uuid;
 
-    @ApiModelProperty("评论主题ID")
-    private String topicId;
-
-    @ApiModelProperty("评论ID")
+    @ApiModelProperty("被回复评论的ID")
     private String commentId;
 
-    @ApiModelProperty("评论内容")
+    @ApiModelProperty("回复评论ID")
+    private String replyId;
+
+    @ApiModelProperty("被回复的回复评论ID")
+    private String toReplyId;
+
+    @ApiModelProperty("被回复的回复用户ID")
+    private String toReplyUuid;
+
+    @ApiModelProperty("回复内容")
     private String content;
 
     @ApiModelProperty("状态0正常,-1禁用,1删除")
     @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
     private Integer status;
 
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty(value = "创建时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long createTime;
 
+
     @ApiModelProperty("点赞数")
     private Integer likeCount;
+
+
 }

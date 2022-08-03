@@ -27,7 +27,7 @@ import java.util.Optional;
  * @date 2021/12/14 19:30
  */
 @Slf4j
-public class MinioUtils {
+public class MinioUtil {
     private MinioClient minioClient;
     private final String bucketName;
     private final Integer imgSize;
@@ -37,7 +37,7 @@ public class MinioUtils {
     private final String SEPARATOR = "/";
 
 
-    public MinioUtils(String endpoint, String bucketName, Integer imgSize, Integer fileSize, MinioClient minioClient) throws Exception {
+    public MinioUtil(String endpoint, String bucketName, Integer imgSize, Integer fileSize, MinioClient minioClient) throws Exception {
         this.endpoint = endpoint;
         this.bucketName = bucketName;
         this.imgSize = imgSize;

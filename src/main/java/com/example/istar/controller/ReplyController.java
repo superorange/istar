@@ -7,11 +7,11 @@ import com.example.istar.common.Roles;
 import com.example.istar.dto.impl.PageWrapperDto;
 import com.example.istar.model.QueryPageModel;
 import com.example.istar.model.TopicCommentReplayModel;
-import com.example.istar.entity.TopicCommentEntity;
-import com.example.istar.entity.TopicCommentReplyEntity;
+import com.example.istar.entity.CommentEntity;
+import com.example.istar.entity.ReplyEntity;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.service.impl.TopicCommentReplyServiceImpl;
-import com.example.istar.service.impl.TopicCommentServiceImpl;
+import com.example.istar.service.impl.ReplyServiceImpl;
+import com.example.istar.service.impl.CommentServiceImpl;
 import com.example.istar.utils.CommonUtil;
 import com.example.istar.utils.Exp;
 import com.example.istar.utils.R;
@@ -32,34 +32,34 @@ import javax.annotation.Resource;
  * @since 2022-07-03
  */
 @RestController
-@Api(tags = "主题评论回复接口")
-@RequestMapping("/replay/comment")
-public class TopicCommentReplyController {
+@Api(tags = "评论回复接口")
+@RequestMapping("/replay")
+public class ReplyController {
 
     @Resource
-    private TopicCommentServiceImpl commentService;
+    private CommentServiceImpl commentService;
     @Resource
-    private TopicCommentReplyServiceImpl replyService;
+    private ReplyServiceImpl replyService;
 
     @ApiOperation(value = "新增回复")
     @PostMapping("")
-    public R<TopicCommentReplyEntity> addReply(TopicCommentReplayModel model) throws Exp {
+    public R<ReplyEntity> addReply(TopicCommentReplayModel model) throws Exp {
         model.check();
         //先检查评论是否还存在
-        LambdaQueryWrapper<TopicCommentEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(TopicCommentEntity::getCommentId, model.getCommentId());
-        TopicCommentEntity commentEntity = commentService.getOne(wrapper);
+        LambdaQueryWrapper<CommentEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CommentEntity::getCommentId, model.getCommentId());
+        CommentEntity commentEntity = commentService.getOne(wrapper);
         if (commentEntity == null || commentEntity.getStatus() != 0) {
             return R.fail(5504, "评论已被删除，无法回复");
         }
         //如果回复不为空，检查回复是否存在
-        TopicCommentReplyEntity toReplyEntity = null;
+        ReplyEntity toReplyEntity = null;
         //新增一个回复对象
-        TopicCommentReplyEntity replyEntity = new TopicCommentReplyEntity();
+        ReplyEntity replyEntity = new ReplyEntity();
         replyEntity.setToReplyUuid(commentEntity.getUuid());
         if (ObjectUtil.isNotEmpty(model.getToReplyId())) {
-            LambdaQueryWrapper<TopicCommentReplyEntity> toReplyWrapper = new LambdaQueryWrapper<>();
-            toReplyWrapper.eq(TopicCommentReplyEntity::getReplyId, model.getToReplyId());
+            LambdaQueryWrapper<ReplyEntity> toReplyWrapper = new LambdaQueryWrapper<>();
+            toReplyWrapper.eq(ReplyEntity::getReplyId, model.getToReplyId());
             toReplyEntity = replyService.getOne(toReplyWrapper);
             if (toReplyEntity == null || toReplyEntity.getStatus() != 0) {
                 return R.fail(5505, "回复已被删除，无法回复");
@@ -80,23 +80,22 @@ public class TopicCommentReplyController {
 
     @ApiOperation(value = "获取评论下的回复列表")
     @GetMapping("")
-    public R<PageWrapperDto<TopicCommentReplyEntity>> getReplies(QueryPageModel model) throws Exp {
-        model.check();
-        LambdaQueryWrapper<TopicCommentReplyEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(TopicCommentReplyEntity::getCommentId, model.getQ());
-        wrapper.eq(TopicCommentReplyEntity::getStatus, 0);
-        wrapper.orderBy(true, model.isAsc(), TopicCommentReplyEntity::getId);
-        Page<TopicCommentReplyEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
-        Page<TopicCommentReplyEntity> topicEntityPage = replyService.page(page, wrapper);
-        return R.ok(PageWrapperDto.wrapPage(topicEntityPage));
+    public R<PageWrapperDto<ReplyEntity>> getReplies(QueryPageModel model) throws Exp {
+        LambdaQueryWrapper<ReplyEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ReplyEntity::getCommentId, model.getQ());
+        wrapper.eq(ReplyEntity::getStatus, 0);
+        wrapper.orderBy(true, model.isAsc(), ReplyEntity::getId);
+        Page<ReplyEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
+        Page<ReplyEntity> topicEntityPage = replyService.page(page, wrapper);
+        return R.ok(PageWrapperDto.wrap(topicEntityPage));
     }
 
     @ApiOperation(value = "删除回复")
     @DeleteMapping("/{id}")
     public R<Boolean> deleteReply(@PathVariable("id") String replyId) throws Exp {
-        LambdaQueryWrapper<TopicCommentReplyEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(TopicCommentReplyEntity::getReplyId, replyId);
-        TopicCommentReplyEntity replyEntity = replyService.getOne(wrapper);
+        LambdaQueryWrapper<ReplyEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ReplyEntity::getReplyId, replyId);
+        ReplyEntity replyEntity = replyService.getOne(wrapper);
         if (ObjectUtil.isNull(replyEntity) || replyEntity.getStatus() == 3 || replyEntity.getStatus() == -3) {
             return R.ok();
         }

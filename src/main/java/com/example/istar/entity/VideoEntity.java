@@ -24,8 +24,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_videos")
-@ApiModel(value = "Videos对象", description = "")
+@TableName("t_video")
+@ApiModel(value = "Video对象", description = "")
 public class VideoEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

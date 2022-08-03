@@ -1,9 +1,7 @@
 package com.example.istar.controller;
 
-import com.example.istar.utils.Exp;
-import com.example.istar.utils.MinioUtils;
+import com.example.istar.utils.MinioUtil;
 import com.example.istar.utils.R;
-import io.minio.ObjectWriteResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.stereotype.Controller;
@@ -21,13 +19,13 @@ import java.util.List;
 @RequestMapping("/files")
 public class FileController {
     @Resource
-    private MinioUtils minioUtil;
+    private MinioUtil minioUtil;
 
     @ApiOperation(value = "minio上传测试")
     @ResponseBody
     @PostMapping("/upload")
     public R upload(@RequestParam("files") MultipartFile[] multipartFile) throws Exception {
-        List<MinioUtils.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(multipartFile);
+        List<MinioUtil.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(multipartFile);
         return R.ok(uploadWrappers);
     }
 

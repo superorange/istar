@@ -8,12 +8,9 @@ import com.example.istar.common.Roles;
 import com.example.istar.dto.impl.*;
 import com.example.istar.entity.PictureEntity;
 import com.example.istar.entity.TopicEntity;
-import com.example.istar.entity.UserEntity;
-import com.example.istar.entity.VideoEntity;
 import com.example.istar.handler.LoginUser;
-import com.example.istar.model.TopicAddModel;
+import com.example.istar.model.QueryPageModel;
 import com.example.istar.model.TopicModel;
-import com.example.istar.model.TopicQueryModel;
 import com.example.istar.service.impl.PicturesServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
 import com.example.istar.service.impl.UserServiceImpl;
@@ -52,126 +49,90 @@ public class TopicController {
     private VideosServiceImpl videosService;
     @Resource
     private LikeUtil likeUtil;
+    @Resource
+    private PictureUtil pictureUtil;
+    @Resource
+    private VideoUtil videoUtil;
+
+
     /**
      * 自己可见
      */
     @Resource
-    private MinioUtils minioUtil;
+    private MinioUtil minioUtil;
     @Resource
     private UserUtil userUtil;
 
     @PostMapping("")
     @ApiOperation(value = "添加帖子")
     @PreAuthorize("@userExpression.mustLogin()")
-    public R<TopicEntityWrapperDto> addTopic(TopicAddModel addModel) throws Exception {
-        addModel.check();
-        TopicEntityWrapperDto topicEntity = new TopicEntityWrapperDto();
-        fillTopicBaseInfo(addModel.getTitle(), addModel.getContent(), LoginUser.getUuid(), topicEntity);
-        ///新增，现在先这样做，置空
-        addModel.setPictureIds(new HashSet<>());
-        addModel.setVideoIds(new HashSet<>());
-        boolean result = uploadPicAndToDb(addModel);
-        if (!result) {
+    public R<TopicEntityWrapperDto> addTopic(TopicModel model) throws Exception {
+        model.check();
+        ///置空传来的pid和vid
+        model.setPictureIds(new HashSet<>());
+        model.setVideoIds(new HashSet<>());
+        //生成文章实体
+        TopicEntity topicEntity = generateTopic();
+        topicEntity.setUuid(LoginUser.getUuidAndThrow());
+        topicEntity.setTitle(model.getTitle());
+        topicEntity.setContent(model.getContent());
+        //上传图片到minio
+        List<MinioUtil.MinioUploadWrapper> minioItems = minioUtil.uploadFile(model.getPictures());
+        //生成图片实体
+        List<PictureEntity> pictureEntities = pictureUtil.getEntitiesByMinioWrapper(minioItems);
+        //将图片实体设置到主题中
+        topicEntity.setPictureIdList(pictureEntities.stream().map(PictureEntity::getPicId).collect(Collectors.toList()));
+        //存储到数据库
+        boolean saveBatch = picturesService.saveBatch(pictureEntities);
+        if (!saveBatch) {
             return R.fail(277, "图片存储失败");
         }
-        updateModelPic(addModel, topicEntity);
-        updateModelVideo(addModel, topicEntity);
-        topicEntity.setAvatar(userUtil.getAvatarByUuid(LoginUser.getUuid()));
-        topicEntity.setNickName(userUtil.getNickNameByUuid(LoginUser.getUuid()));
         boolean save = topicService.save(topicEntity);
-        return save ? R.ok(topicEntity) : R.fail();
-    }
-
-    private void fillTopicBaseInfo(String title, String content, String uuid, TopicEntityWrapperDto topicEntity) {
-        topicEntity.setUuid(uuid);
-        topicEntity.setTopicId(CommonUtil.generateTimeId());
-        topicEntity.setTitle(title);
-        topicEntity.setContent(content);
-        topicEntity.setStatus(0);
-        topicEntity.setCreateTime(System.currentTimeMillis());
-        topicEntity.setModifyTime(System.currentTimeMillis());
-    }
-
-    /**
-     * 将视频List转String
-     */
-    private void updateModelVideo(TopicModel model, TopicEntity topicEntity) {
-        if (ObjectUtil.isNotEmpty(model.getVideoIds())) {
-            topicEntity.setVideoId(String.join(";", model.getVideoIds()));
+        if (!save) {
+            return R.fail(278, "文章新增失败");
         }
-    }
-
-    /**
-     * 将图片List转String
-     */
-    private void updateModelPic(TopicModel model, TopicEntity topicEntity) {
-        if (ObjectUtil.isNotEmpty(model.getPictureIds())) {
-            topicEntity.setPicId(String.join(";", model.getPictureIds()));
-        }
-    }
-
-    private boolean uploadPicAndToDb(TopicModel model) throws Exception {
-        if (ObjectUtil.isNotEmpty(model.getPictures())) {
-            List<MinioUtils.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(model.getPictures());
-            List<PictureEntity> picObject = uploadWrappers.stream().map(f -> {
-                PictureEntity pictureEntity = new PictureEntity();
-                pictureEntity.setUuid(LoginUser.getUuid());
-                pictureEntity.setPicId(f.getFileId());
-                model.getPictureIds().add(f.getFileId());
-                pictureEntity.setPicUrl(f.getFileBucketName());
-                pictureEntity.setPicName(f.getFileOriginName());
-                pictureEntity.setPicType("TOPIC");
-                pictureEntity.setStatus(0);
-                pictureEntity.setCreateTime(System.currentTimeMillis());
-                return pictureEntity;
-            }).collect(Collectors.toList());
-            return picturesService.saveBatch(picObject);
-        }
-        return true;
-
+        //包裹实体到返回的对象
+        TopicEntityWrapperDto dto = wrapEntity(topicEntity, pictureEntities);
+        return R.ok(dto);
     }
 
 
     @GetMapping("/{topicId}")
     @ApiOperation(value = "获取帖子")
-    public R<TopicEntityWrapperDto> getTopic(@PathVariable("topicId") String topicId) {
+    public R<TopicEntityWrapperDto> getTopic(@PathVariable("topicId") String topicId) throws Exp {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         //排除不可见的帖子
-        lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId).eq(TopicEntity::getStatus, 0);
+        lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
+        lambdaQueryWrapper.eq(TopicEntity::getStatus, 0);
         TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
-        if (topicEntity != null) {
-            TopicEntityWrapperDto topicWrapper = new TopicEntityWrapperDto();
-
-            BeanUtils.copyProperties(topicEntity, topicWrapper);
-            ///查询图片信息
-            expandPicAndVideo(topicWrapper);
-            topicWrapper.setLikeCount(likeUtil.getTopicLike(topicWrapper.getTopicId()));
-            return R.ok(topicWrapper);
+        if (topicEntity == null) {
+            return R.fail(ResultCode.NOT_FOUND);
         }
-        return R.ok();
+        TopicEntityWrapperDto dto = wrapEntity(topicEntity, null);
+        return R.ok(dto);
     }
 
     @GetMapping("")
     @ApiOperation(value = "获取帖子列表")
-    public R<PageWrapperDto<TopicEntityWrapperDto>> getTopics(TopicQueryModel model) {
+    public R<PageWrapperDto<TopicEntityWrapperDto>> getTopics(QueryPageModel model) throws Exp {
         //数据校验
         if (ObjectUtil.isNull(model)) {
-            model = new TopicQueryModel();
+            model = new QueryPageModel();
         }
         //从数据库查询数据
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         //不为空查询单个人的
-        if (ObjectUtil.isNotEmpty(model.getUuid())) {
+        if (ObjectUtil.isNotEmpty(model.getKey())) {
             ///添加UUID查询条件
-            lambdaQueryWrapper.eq(TopicEntity::getUuid, model.getUuid());
+            lambdaQueryWrapper.eq(TopicEntity::getUuid, model.getKey());
             //判断是否是查询自己
-            if (model.getUuid().equals(LoginUser.getUuid())) {
-                lambdaQueryWrapper.in(TopicEntity::getStatus, Roles.ownerSee);
+            if (model.getKey().equals(LoginUser.getUuidAndThrow())) {
+                lambdaQueryWrapper.in(TopicEntity::getStatus, Roles.OWNER_SEE);
             } else {
-                lambdaQueryWrapper.eq(TopicEntity::getStatus, Roles.onlyPublic);
+                lambdaQueryWrapper.eq(TopicEntity::getStatus, Roles.PUBLIC_SEE);
             }
         } else {
-            lambdaQueryWrapper.eq(TopicEntity::getStatus, Roles.onlyPublic);
+            lambdaQueryWrapper.eq(TopicEntity::getStatus, Roles.PUBLIC_SEE);
         }
         //like语句模糊搜索关键字
         if (StrUtil.isNotBlank(model.getQ())) {
@@ -184,47 +145,38 @@ public class TopicController {
         Page<TopicEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
         Page<TopicEntity> topicEntityPage = topicService.page(page, lambdaQueryWrapper);
         //查出帖子后复制到新的包装对象
-        List<TopicEntityWrapperDto> wrappers = topicEntityPage.getRecords().stream().map(topic -> {
-            TopicEntityWrapperDto topicWrapper = new TopicEntityWrapperDto();
-            BeanUtils.copyProperties(topic, topicWrapper);
-            topicWrapper.setLikeCount(likeUtil.getTopicLike(topicWrapper.getTopicId()));
-            return topicWrapper;
-        }).collect(Collectors.toList());
-        //查询帖子对应的视频和图片
-        for (TopicEntityWrapperDto topicWrapper : wrappers) {
-            expandPicAndVideo(topicWrapper);
-        }
-        PageWrapperDto<TopicEntityWrapperDto> pageWrapperModel = new PageWrapperDto<>();
-        pageWrapperModel.setRows(wrappers);
-        return R.ok(pageWrapperModel);
+        List<TopicEntityWrapperDto> wrappers = topicEntityPage.getRecords().stream()
+                .map(topic -> {
+                    try {
+                        return wrapEntity(topic, null);
+                    } catch (Exp e) {
+                        throw new RuntimeException(e);
+                    }
+                }).collect(Collectors.toList());
+        return R.ok(PageWrapperDto.wrap(wrappers));
     }
 
     @DeleteMapping("/{topicId}")
     @ApiOperation(value = "删除帖子")
-    public R<Boolean> deleteTopic(@PathVariable("topicId") String topicId) {
-        LoginUser user = LoginUser.getCurrentUser();
+    @PreAuthorize("@userExpression.mustLogin()")
+    public R<Boolean> deleteTopic(@PathVariable("topicId") String topicId) throws Exp {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.select(TopicEntity::getUuid, TopicEntity::getStatus);
         lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
         TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
         if (topicEntity != null) {
             //只有是自己的帖子才可以删除
-            if (user.getUserEntity().getUuid().equals(topicEntity.getUuid())) {
-                //是0才删除
-                if (topicEntity.getStatus() == 0) {
-                    topicEntity.setStatus(1);
+            if (LoginUser.isSelf(topicEntity.getUuid())) {
+                if (Roles.ownerCanEdit(topicEntity.getStatus())) {
+                    topicEntity.setStatus(Roles.SELF_DELETE);
                     boolean save = topicService.updateById(topicEntity);
                     return save ? R.ok(true) : R.fail();
                 }
-                //-1禁止操作
-                else if (topicEntity.getStatus() == -1) {
-                    return R.fail(ResultCode.OPERATION_FAILED);
-                }
-                //1直接返回
-                return R.ok(true);
+                return R.fail(ResultCode.OPERATION_FAILED);
             }
             //超级管理员可以删除,设置状态为-2
-            else if (user.getUserEntity().getRoles().equals(Roles.SYS_SUPER_ADMIN)) {
-                topicEntity.setStatus(-2);
+            else if (Roles.isSuperAdmin()) {
+                topicEntity.setStatus(Roles.ADMIN_DELETE);
                 boolean save = topicService.updateById(topicEntity);
                 return save ? R.ok(true) : R.fail();
             }
@@ -234,81 +186,68 @@ public class TopicController {
     }
 
 
-    @PutMapping("/{topicId}")
+    @PutMapping("/{id}")
     @ApiOperation(value = "修改帖子")
-    public R<TopicSimpleDto> updateTopic(@PathVariable("topicId") String topicId, TopicModel model) throws Exception {
-        LoginUser loginUser = LoginUser.getCurrentUserAndThrow();
+    @PreAuthorize("@userExpression.mustLogin()")
+    public R<TopicEntityWrapperDto> updateTopic(@PathVariable("id") String id, TopicModel model) throws Exception {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
+        lambdaQueryWrapper.eq(TopicEntity::getTopicId, id);
+        lambdaQueryWrapper.select(TopicEntity::getTopicId);
         TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
         //查询是否有该资源
         if (topicEntity == null) {
             return R.fail(ResultCode.NOT_FOUND);
         }
         //判断所有权
-        if (!LoginUser.getUuidAndThrow().equals(topicEntity.getUuid())) {
+        if (!LoginUser.isSelf(topicEntity.getUuid())) {
             return R.fail(ResultCode.PERMISSION_FAILED);
         }
         //判断是否可以更改
-        if (!Roles.hasSelfEdit(topicEntity.getStatus())) {
+        if (!Roles.ownerCanEdit(topicEntity.getStatus())) {
             return R.fail(ResultCode.RESOURCE_FORBIDDEN);
         }
         topicEntity.setTitle(model.getTitle());
         topicEntity.setContent(model.getContent());
         topicEntity.setModifyTime(System.currentTimeMillis());
-        if (ObjectUtil.isNotEmpty(model.getPictures())) {
-            if (model.getPictureIds() == null) {
-                model.setPictureIds(new HashSet<>());
-            }
-            boolean result = uploadPicAndToDb(model);
-            if (!result) {
-                return R.fail(277, "图片存储失败");
-            }
-        }
-        updateModelPic(model, topicEntity);
-        updateModelVideo(model, topicEntity);
+
+        //上传图片到minio
+        List<MinioUtil.MinioUploadWrapper> minioItems = minioUtil.uploadFile(model.getPictures());
+
+        //获取图片实体
+        List<PictureEntity> pictureEntities1 = pictureUtil.getEntitiesByMinioWrapper(minioItems);
+        List<PictureEntity> pictureEntities2 = pictureUtil.getEntities(model.getPictureIds());
+        pictureEntities1.addAll(pictureEntities2);
+
+        topicEntity.setPictureIdList(pictureEntities1.stream().map(PictureEntity::getPicId).collect(Collectors.toList()));
+
         boolean save = topicService.updateById(topicEntity);
-        return save ? R.ok(new TopicSimpleDto(topicEntity.getTopicId())) : R.fail("数据库更新失败");
+        TopicEntityWrapperDto dto = wrapEntity(topicEntity, pictureEntities1);
+        return save ? R.ok(dto) : R.fail("数据库更新失败");
     }
 
 
-    /**
-     * 查询图片和视频信息
-     *
-     * @param topicWrapper 帖子信息
-     */
-
-    private void expandPicAndVideo(TopicEntityWrapperDto topicWrapper) {
-        ///查询图片信息
-        if (ObjectUtil.isNotEmpty(topicWrapper.getPicId())) {
-            LambdaQueryWrapper<PictureEntity> picturesLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            picturesLambdaQueryWrapper.in(PictureEntity::getPicId, Arrays.asList(topicWrapper.getPicId().split(";")));
-            picturesLambdaQueryWrapper.eq(PictureEntity::getStatus, Roles.onlyPublic);
-            List<PictureEntity> collect = picturesService.list(picturesLambdaQueryWrapper).stream().peek(pictures -> {
-                ///添加图片地址前缀
-                pictures.setPicUrl(minioUtil.getBasisUrl() + pictures.getPicUrl());
-            }).collect(Collectors.toList());
-            topicWrapper.setPictures(collect);
+    private TopicEntityWrapperDto wrapEntity(TopicEntity topicEntity, List<PictureEntity> pictureEntities) throws Exp {
+        TopicEntityWrapperDto dto = new TopicEntityWrapperDto();
+        BeanUtils.copyProperties(topicEntity, dto);
+        if (pictureEntities == null) {
+            dto.setPictures(pictureUtil.getEntities(new HashSet<>(topicEntity.getPictureIdList())));
+        } else {
+            dto.setPictures(pictureEntities);
         }
-        ///查询视频信息
-        if (ObjectUtil.isNotEmpty(topicWrapper.getVideoId())) {
-            LambdaQueryWrapper<VideoEntity> videosLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            videosLambdaQueryWrapper.in(VideoEntity::getVideoId, Arrays.asList(topicWrapper.getVideoId().split(";")));
-            videosLambdaQueryWrapper.eq(VideoEntity::getStatus, Roles.onlyPublic);
-            List<VideoEntity> collect = videosService.list(videosLambdaQueryWrapper).stream().peek(videos -> {
-                ///添加视频地址前缀
-                videos.setVideoUrl(minioUtil.getBasisUrl() + videos.getVideoUrl());
-            }).collect(Collectors.toList());
-            topicWrapper.setVideos(collect);
-        }
-        LambdaQueryWrapper<UserEntity> userEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<UserEntity> queryWrapper = userEntityLambdaQueryWrapper.eq(UserEntity::getUuid, topicWrapper.getUuid());
-        UserEntity user = userService.getOne(queryWrapper);
-        if (ObjectUtil.isNotNull(user)) {
-            topicWrapper.setAvatarUrl(user.getAvatarUrl());
-            topicWrapper.setNickName(user.getNickName());
-        }
-
+        dto.setAvatar(userUtil.getAvatarByUuid(LoginUser.getUuidAndThrow()));
+        dto.setNickName(userUtil.getNickNameByUuid(LoginUser.getUuidAndThrow()));
+        dto.setLikeCount(likeUtil.getTopicLike(topicEntity.getTopicId()));
+        return dto;
     }
+
+    private TopicEntity generateTopic() {
+        TopicEntity topicEntity = new TopicEntity();
+        topicEntity.setTopicId(CommonUtil.generateTimeId());
+        topicEntity.setStatus(0);
+        topicEntity.setCreateTime(System.currentTimeMillis());
+        topicEntity.setModifyTime(System.currentTimeMillis());
+        return topicEntity;
+    }
+
 
 }

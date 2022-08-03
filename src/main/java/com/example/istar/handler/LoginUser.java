@@ -77,27 +77,27 @@ public class LoginUser implements UserDetails, Serializable {
     }
 
     public static LoginUser getCurrentUser() {
-        return (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof LoginUser) {
+            return (LoginUser) principal;
+        }
+        return null;
     }
 
     public static LoginUser getCurrentUserAndThrow() throws Exp {
-        LoginUser principal = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (ObjectUtil.isNull(principal)) {
-            throw Exp.from(ResultCode.AUTH_FAILED);
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof LoginUser) {
+            return (LoginUser) principal;
         }
-        return principal;
+        throw Exp.from(ResultCode.AUTH_FAILED);
     }
 
     public static boolean isSelf(String uuid) throws Exp {
         return uuid != null && LoginUser.getUuidAndThrow().equals(uuid);
     }
 
-    public static String getUuid() {
-        return getCurrentUser().getUserEntity().getUuid();
-    }
-
     public static String getUuidAndThrow() throws Exp {
-        String uuid = getCurrentUser().getUserEntity().getUuid();
+        String uuid = getCurrentUserAndThrow().getUserEntity().getUuid();
         if (ObjectUtil.isNull(uuid)) {
             throw Exp.from(ResultCode.AUTH_FAILED);
         }

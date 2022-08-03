@@ -24,8 +24,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_pictures")
-@ApiModel(value = "Pictures对象", description = "")
+@TableName("t_picture")
+@ApiModel(value = "Picture对象", description = "")
 public class PictureEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;

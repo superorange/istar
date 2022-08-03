@@ -36,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         System.out.println("JwtAuthenticationFilter--RUNNING");
-
         ///如果是PERMIT_URL接口就不要认证了
         if (Arrays.stream(PermitUrl.PERMIT_URL).anyMatch(s -> s.equals(request.getRequestURI()))) {
             filterChain.doFilter(request, response);
@@ -47,21 +46,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 String uuid = SafeUtil.getUuid(token);
                 if (!ObjectUtils.isEmpty(uuid)) {
-                    LoginUser loginUser = redisUtil.getCacheObject(RedisConst.user_info_by_uuid + uuid);
+                    LoginUser loginUser = redisUtil.getCacheObject(RedisConst.USER_INFO_BY_UUID + uuid);
                     if (loginUser != null) {
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        filterChain.doFilter(request, response);
-                        return;
                     }
-                    ResponseUtils.writeErrorInfo(response, ResultCode.AUTH_FAILED);
-                    return;
                 }
             } catch (Exception e) {
-                ResponseUtils.writeErrorInfo(response, ResultCode.AUTH_FAILED);
-                return;
+                System.out.println("JWT异常" + e);
             }
-
         }
         filterChain.doFilter(request, response);
     }

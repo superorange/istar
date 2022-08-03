@@ -49,10 +49,10 @@ public class UserController {
     public R<UserWrapperDto> preRegister(@RequestBody LoginModel model) throws Exp {
         model.check();
         ///1, 校验验证码
-        String redisCode = redisUtil.getCacheObject(RedisConst.auth_code_by_key + model.getData());
+        String redisCode = redisUtil.getCacheObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
         if (redisCode != null && redisCode.equals(model.getCode())) {
             ///校验成功,删除验证码
-            redisUtil.deleteObject(RedisConst.auth_code_by_key + model.getData());
+            redisUtil.deleteObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
             UserEntity userEntity = null;
             if (RegexTool.isEmail(model.getData())) {
                 userEntity = userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getEmail, model.getData()));
@@ -72,7 +72,7 @@ public class UserController {
                 return R.fail(ResultCode.FAILED);
             }
             LoginUser loginUser = new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
-            redisUtil.setCacheObject(RedisConst.user_info_by_uuid + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
+            redisUtil.setCacheObject(RedisConst.USER_INFO_BY_UUID + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
             return R.ok(new UserWrapperDto(token, userEntity));
         }
         return R.fail(ResultCode.CODE_ERROR);
@@ -110,7 +110,7 @@ public class UserController {
         queryWrapper.orderBy(true, pageModel.isAsc(), UserEntity::getId);
         Page<UserEntity> page = new Page<>(pageModel.getCurrentIndex(), pageModel.getCurrentCount());
         Page<UserEntity> entityPage = userService.page(page, queryWrapper);
-        return R.ok(PageWrapperDto.wrapPage(entityPage));
+        return R.ok(PageWrapperDto.wrap(entityPage));
     }
 
     @ApiOperation(value = "获取单个用户信息", notes = "获取单个用户信息")
@@ -143,7 +143,7 @@ public class UserController {
             if (one != null) {
                 one.setStatus(-1);
                 boolean update = userService.updateById(one);
-                redisUtil.deleteObject(RedisConst.user_info_by_uuid + loginUser.getUserEntity().getUuid());
+                redisUtil.deleteObject(RedisConst.USER_INFO_BY_UUID + loginUser.getUserEntity().getUuid());
                 return update ? R.ok() : R.fail(ResultCode.OPERATION_FAILED);
             }
             return R.fail();

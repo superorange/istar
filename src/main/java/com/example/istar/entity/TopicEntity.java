@@ -2,11 +2,14 @@ package com.example.istar.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
+import java.util.List;
 
+import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
 import com.example.istar.utils.LocalDateTimeSerializer;
 import com.example.istar.utils.StatusSerializer;
 import io.swagger.annotations.ApiModel;
@@ -42,13 +45,15 @@ public class TopicEntity implements Serializable {
     @ApiModelProperty("文章id")
     private String topicId;
 
-    @ApiModelProperty("图片ID列表，用分号分隔")
+    @ApiModelProperty("图片ID列表")
+    @TableField(typeHandler = FastjsonTypeHandler.class)
     @JSONField(serialize = false)
-    private String picId;
+    private List<String> pictureIdList;
 
-    @ApiModelProperty("视频ID列表，用分号分隔")
+    @ApiModelProperty("视频ID列表")
     @JSONField(serialize = false)
-    private String videoId;
+    @TableField(typeHandler = FastjsonTypeHandler.class)
+    private List<String> videoIdList;
 
     @ApiModelProperty("标题")
     private String title;

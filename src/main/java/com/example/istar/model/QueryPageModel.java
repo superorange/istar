@@ -11,12 +11,9 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class QueryPageModel extends PageModel implements RequestCheckerInterface {
-    @ApiModelProperty(value = "关键字")
+public class QueryPageModel extends PageModel {
+    @ApiModelProperty(value = "查询关键字，like")
     private String q;
-
-    @Override
-    public boolean isCorrect() {
-        return ObjectUtil.isNotEmpty(q);
-    }
+    @ApiModelProperty("查询谁的，uuid/等")
+    private String key;
 }

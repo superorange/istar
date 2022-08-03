@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.io.Serializable;
 
 import com.example.istar.utils.LocalDateTimeSerializer;
@@ -15,7 +16,7 @@ import lombok.Setter;
 
 /**
  * <p>
- * 回复表
+ * 评论表
  * </p>
  *
  * @author tian
@@ -23,9 +24,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_topic_comment_reply")
-@ApiModel(value = "TopicCommentReply对象", description = "回复表")
-public class TopicCommentReplyEntity implements Serializable {
+@TableName("t_comment")
+@ApiModel(value = "Comment对象", description = "评论表")
+public class CommentEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,32 +37,23 @@ public class TopicCommentReplyEntity implements Serializable {
     @ApiModelProperty("评论用户ID")
     private String uuid;
 
-    @ApiModelProperty("被回复评论的ID")
+    @ApiModelProperty("评论主题ID")
+    private String topicId;
+
+    @ApiModelProperty("评论ID")
     private String commentId;
 
-    @ApiModelProperty("回复评论ID")
-    private String replyId;
-
-    @ApiModelProperty("被回复的回复评论ID")
-    private String toReplyId;
-
-    @ApiModelProperty("被回复的回复用户ID")
-    private String toReplyUuid;
-
-    @ApiModelProperty("回复内容")
+    @ApiModelProperty("评论内容")
     private String content;
 
     @ApiModelProperty("状态0正常,-1禁用,1删除")
     @JSONField(serializeUsing = StatusSerializer.class, serialize = false)
     private Integer status;
 
-    @ApiModelProperty(value = "创建时间",dataType = "java.lang.String")
+    @ApiModelProperty("创建时间")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long createTime;
 
-
     @ApiModelProperty("点赞数")
     private Integer likeCount;
-
-
 }

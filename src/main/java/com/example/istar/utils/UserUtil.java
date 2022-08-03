@@ -17,14 +17,14 @@ public class UserUtil {
     private RedisUtil redisUtil;
 
     public String getAvatarByUuid(String uuid) {
-        String re = redisUtil.getCacheObject(RedisConst.user_avatar_by_uuid + uuid);
+        String re = redisUtil.getCacheObject(RedisConst.USER_AVATAR_BY_UUID + uuid);
         ///如果为空则从数据库中获取
         if (StrUtil.isEmpty(re)) {
             UserEntity user = userService.getOne(new LambdaQueryWrapper<UserEntity>()
                     .eq(UserEntity::getUuid, uuid));
             if (user != null) {
-                re = user.getAvatarUrl();
-                redisUtil.setCacheObject(RedisConst.user_avatar_by_uuid + uuid, re);
+                re = user.getAvatar();
+                redisUtil.setCacheObject(RedisConst.USER_AVATAR_BY_UUID + uuid, re);
             }
         }
         return re;
@@ -32,4 +32,18 @@ public class UserUtil {
     }
 
 
+    public String getNickNameByUuid(String uuid) {
+        String re = redisUtil.getCacheObject(RedisConst.USER_NICK_NAME_BY_UUID + uuid);
+        ///如果为空则从数据库中获取
+        if (StrUtil.isEmpty(re)) {
+            UserEntity user = userService.getOne(new LambdaQueryWrapper<UserEntity>()
+                    .select(UserEntity::getAvatar)
+                    .eq(UserEntity::getUuid, uuid));
+            if (user != null) {
+                re = user.getAvatar();
+                redisUtil.setCacheObject(RedisConst.USER_AVATAR_BY_UUID + uuid, re);
+            }
+        }
+        return re;
+    }
 }

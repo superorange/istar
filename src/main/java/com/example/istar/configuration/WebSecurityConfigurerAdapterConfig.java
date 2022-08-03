@@ -25,10 +25,10 @@ import javax.annotation.Resource;
 /**
  * @author tian
  * springboot  security配置
+ * TODO 开启权限认证
  */
 @Configuration
 @EnableWebSecurity
-///TODO 开启权限认证
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAdapter {
     @Resource
@@ -64,8 +64,8 @@ public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAda
                 .antMatchers(PermitUrl.PERMIT_URL).permitAll()
 //                .antMatchers("/user/getUserList").permitAll()
                 //放行swagger
-                .antMatchers("/doc.html", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/v2/**", "/api/**", "/v3/**").permitAll()
-                .anyRequest().authenticated();
+//                .antMatchers("/doc.html", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/v2/**", "/api/**", "/v3/**").permitAll()
+                .anyRequest().permitAll();
         http.formLogin().disable();
         http.csrf().disable();
         ///TODO 开启自定义的过滤器

@@ -61,7 +61,7 @@ public class UserEntity implements Serializable {
     private LocalDateTime birthday;
 
     @ApiModelProperty("头像地址")
-    private String avatarUrl;
+    private String avatar;
 
     @ApiModelProperty("用户状态0正常-1禁用")
     private Integer status;
