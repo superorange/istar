@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.istar.common.Const;
 import com.example.istar.common.Roles;
 import com.example.istar.dto.impl.*;
 import com.example.istar.entity.PictureEntity;
@@ -12,6 +11,7 @@ import com.example.istar.entity.TopicEntity;
 import com.example.istar.entity.UserEntity;
 import com.example.istar.entity.VideoEntity;
 import com.example.istar.handler.LoginUser;
+import com.example.istar.model.TopicAddModel;
 import com.example.istar.model.TopicModel;
 import com.example.istar.model.TopicQueryModel;
 import com.example.istar.service.impl.PicturesServiceImpl;
@@ -22,6 +22,7 @@ import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -56,30 +57,39 @@ public class TopicController {
      */
     @Resource
     private MinioUtils minioUtil;
+    @Resource
+    private UserUtil userUtil;
 
     @PostMapping("")
     @ApiOperation(value = "添加帖子")
-    public R<TopicSimpleDto> addTopic(TopicModel model) throws Exception {
-        model.check();
-        LoginUser loginUser = LoginUser.getCurrentUserAndThrow();
-        TopicEntity topicEntity = new TopicEntity();
-        topicEntity.setUuid(loginUser.getUserEntity().getUuid());
-        topicEntity.setTopicId(CommonUtil.generateTimeId());
-        topicEntity.setTitle(model.getTitle());
-        topicEntity.setContent(model.getContent());
-        topicEntity.setStatus(0);
-        topicEntity.setCreateTime(System.currentTimeMillis());
-        topicEntity.setModifyTime(System.currentTimeMillis());
+    @PreAuthorize("@userExpression.mustLogin()")
+    public R<TopicEntityWrapperDto> addTopic(TopicAddModel addModel) throws Exception {
+        addModel.check();
+        TopicEntityWrapperDto topicEntity = new TopicEntityWrapperDto();
+        fillTopicBaseInfo(addModel.getTitle(), addModel.getContent(), LoginUser.getUuid(), topicEntity);
         ///新增，现在先这样做，置空
-        model.setPictureIds(new HashSet<>());
-        boolean result = uploadPicAndToDb(model);
+        addModel.setPictureIds(new HashSet<>());
+        addModel.setVideoIds(new HashSet<>());
+        boolean result = uploadPicAndToDb(addModel);
         if (!result) {
             return R.fail(277, "图片存储失败");
         }
-        updateModelPic(model, topicEntity);
-        updateModelVideo(model, topicEntity);
+        updateModelPic(addModel, topicEntity);
+        updateModelVideo(addModel, topicEntity);
+        topicEntity.setAvatar(userUtil.getAvatarByUuid(LoginUser.getUuid()));
+        topicEntity.setNickName(userUtil.getNickNameByUuid(LoginUser.getUuid()));
         boolean save = topicService.save(topicEntity);
-        return save ? R.ok(new TopicSimpleDto(topicEntity.getTopicId())) : R.fail();
+        return save ? R.ok(topicEntity) : R.fail();
+    }
+
+    private void fillTopicBaseInfo(String title, String content, String uuid, TopicEntityWrapperDto topicEntity) {
+        topicEntity.setUuid(uuid);
+        topicEntity.setTopicId(CommonUtil.generateTimeId());
+        topicEntity.setTitle(title);
+        topicEntity.setContent(content);
+        topicEntity.setStatus(0);
+        topicEntity.setCreateTime(System.currentTimeMillis());
+        topicEntity.setModifyTime(System.currentTimeMillis());
     }
 
     /**
@@ -143,29 +153,30 @@ public class TopicController {
 
     @GetMapping("")
     @ApiOperation(value = "获取帖子列表")
-    public R<PageWrapperDto<TopicEntityWrapperDto>> getTopics(TopicQueryModel model) throws Exp {
+    public R<PageWrapperDto<TopicEntityWrapperDto>> getTopics(TopicQueryModel model) {
         //数据校验
         if (ObjectUtil.isNull(model)) {
             model = new TopicQueryModel();
         }
         //从数据库查询数据
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        //如果是查询自己的
-        if (Const.SELF.equals(model.getOwner())) {
-            LoginUser currentUser = LoginUser.getCurrentUser();
-            if (ObjectUtil.isNull(currentUser)) {
-                throw Exp.from(ResultCode.AUTH_FAILED);
+        //不为空查询单个人的
+        if (ObjectUtil.isNotEmpty(model.getUuid())) {
+            ///添加UUID查询条件
+            lambdaQueryWrapper.eq(TopicEntity::getUuid, model.getUuid());
+            //判断是否是查询自己
+            if (model.getUuid().equals(LoginUser.getUuid())) {
+                lambdaQueryWrapper.in(TopicEntity::getStatus, Roles.ownerSee);
+            } else {
+                lambdaQueryWrapper.eq(TopicEntity::getStatus, Roles.onlyPublic);
             }
-            //查出自己可见没有封禁的帖子
-            lambdaQueryWrapper.in(TopicEntity::getStatus, Roles.ownerSee);
         } else {
-            //查出状态为0,没有封禁的帖子
-            lambdaQueryWrapper.eq(TopicEntity::getStatus, 0);
-
+            lambdaQueryWrapper.eq(TopicEntity::getStatus, Roles.onlyPublic);
         }
         //like语句模糊搜索关键字
         if (StrUtil.isNotBlank(model.getQ())) {
             lambdaQueryWrapper.like(TopicEntity::getTitle, model.getQ());
+            lambdaQueryWrapper.like(TopicEntity::getContent, model.getQ());
         }
         //排序
         lambdaQueryWrapper.orderBy(true, model.isAsc(), TopicEntity::getId);
@@ -272,11 +283,10 @@ public class TopicController {
         if (ObjectUtil.isNotEmpty(topicWrapper.getPicId())) {
             LambdaQueryWrapper<PictureEntity> picturesLambdaQueryWrapper = new LambdaQueryWrapper<>();
             picturesLambdaQueryWrapper.in(PictureEntity::getPicId, Arrays.asList(topicWrapper.getPicId().split(";")));
-            List<PictureEntity> collect = picturesService.list(picturesLambdaQueryWrapper).stream().filter(pictures -> {
+            picturesLambdaQueryWrapper.eq(PictureEntity::getStatus, Roles.onlyPublic);
+            List<PictureEntity> collect = picturesService.list(picturesLambdaQueryWrapper).stream().peek(pictures -> {
                 ///添加图片地址前缀
                 pictures.setPicUrl(minioUtil.getBasisUrl() + pictures.getPicUrl());
-                ///去除违规图片
-                return pictures.getStatus() == 0;
             }).collect(Collectors.toList());
             topicWrapper.setPictures(collect);
         }
@@ -284,9 +294,10 @@ public class TopicController {
         if (ObjectUtil.isNotEmpty(topicWrapper.getVideoId())) {
             LambdaQueryWrapper<VideoEntity> videosLambdaQueryWrapper = new LambdaQueryWrapper<>();
             videosLambdaQueryWrapper.in(VideoEntity::getVideoId, Arrays.asList(topicWrapper.getVideoId().split(";")));
-            List<VideoEntity> collect = videosService.list(videosLambdaQueryWrapper).stream().filter(videos -> {
-                ///去除违规图片
-                return videos.getStatus() == 0;
+            videosLambdaQueryWrapper.eq(VideoEntity::getStatus, Roles.onlyPublic);
+            List<VideoEntity> collect = videosService.list(videosLambdaQueryWrapper).stream().peek(videos -> {
+                ///添加视频地址前缀
+                videos.setVideoUrl(minioUtil.getBasisUrl() + videos.getVideoUrl());
             }).collect(Collectors.toList());
             topicWrapper.setVideos(collect);
         }

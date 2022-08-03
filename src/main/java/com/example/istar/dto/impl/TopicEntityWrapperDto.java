@@ -20,7 +20,7 @@ public class TopicEntityWrapperDto extends TopicEntity {
     @ApiModelProperty(value = "图片详细信息")
     private List<PictureEntity> pictures;
     @ApiModelProperty(value = "头像地址")
-    private String avatarUrl;
+    private String avatar;
     @ApiModelProperty(value = "用户昵称")
     private String nickName;
 }

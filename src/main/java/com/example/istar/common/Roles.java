@@ -26,6 +26,8 @@ public interface Roles {
     List<Integer> ownerEdit = Arrays.asList(-1, 0, 1);
     //自己可见 -2，-1，0，1
     List<Integer> ownerSee = Arrays.asList(-2, -1, 0, 1);
+
+    Integer onlyPublic = 0;
     //公开可见 0
     List<Integer> publicSee = Collections.singletonList(0);
 
