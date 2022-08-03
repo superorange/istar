@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 String uuid = SafeUtil.getUuid(token);
                 if (!ObjectUtils.isEmpty(uuid)) {
-                    LoginUser loginUser = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_INFO + uuid);
+                    LoginUser loginUser = redisUtil.getCacheObject(RedisConst.user_info_by_uuid + uuid);
                     if (loginUser != null) {
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);

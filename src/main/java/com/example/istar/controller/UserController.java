@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * <p>
@@ -50,15 +49,15 @@ public class UserController {
     public R<UserWrapperDto> preRegister(@RequestBody LoginModel model) throws Exp {
         model.check();
         ///1, 校验验证码
-        String redisCode = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
+        String redisCode = redisUtil.getCacheObject(RedisConst.auth_code_by_key + model.getData());
         if (redisCode != null && redisCode.equals(model.getCode())) {
-            ///检验成功，删除验证码
-            redisUtil.deleteObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
+            ///校验成功,删除验证码
+            redisUtil.deleteObject(RedisConst.auth_code_by_key + model.getData());
             UserEntity userEntity = null;
             if (RegexTool.isEmail(model.getData())) {
-                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("email", model.getData()));
+                userEntity = userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getEmail, model.getData()));
             } else if (RegexTool.isMobiles(model.getData())) {
-                userEntity = userService.getOne(new QueryWrapper<UserEntity>().eq("mobile", model.getData()));
+                userEntity = userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getMobile, model.getData()));
             }
             ///新用户
             if (userEntity == null) {
@@ -70,10 +69,10 @@ public class UserController {
             }
             String token = SafeUtil.generateToken(userEntity.getUuid());
             if (token == null) {
-                throw Exp.from(ResultCode.FAILED);
+                return R.fail(ResultCode.FAILED);
             }
             LoginUser loginUser = new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
-            redisUtil.setCacheObject(RedisConst.REDIS_LOGIN_INFO + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
+            redisUtil.setCacheObject(RedisConst.user_info_by_uuid + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
             return R.ok(new UserWrapperDto(token, userEntity));
         }
         return R.fail(ResultCode.CODE_ERROR);
@@ -144,7 +143,7 @@ public class UserController {
             if (one != null) {
                 one.setStatus(-1);
                 boolean update = userService.updateById(one);
-                redisUtil.deleteObject(RedisConst.REDIS_LOGIN_INFO + loginUser.getUserEntity().getUuid());
+                redisUtil.deleteObject(RedisConst.user_info_by_uuid + loginUser.getUserEntity().getUuid());
                 return update ? R.ok() : R.fail(ResultCode.OPERATION_FAILED);
             }
             return R.fail();

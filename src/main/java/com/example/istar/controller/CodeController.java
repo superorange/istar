@@ -31,7 +31,7 @@ public class CodeController {
     @PostMapping("/send")
     public R sendCode(@RequestBody CodeModel model) throws Exp {
         model.check();
-        String key = RedisConst.REDIS_LOGIN_PRE_CHECK + model.getData();
+        String key = RedisConst.auth_cid_by_key + model.getData();
         String cacheObject = redisUtil.getCacheObject(key);
         if (ObjectUtil.isNull(cacheObject)) {
             return R.fail(ResultCode.OPERATION_FORBIDDEN);
@@ -75,11 +75,11 @@ public class CodeController {
 
     private R sendLoginCode(CodeModel model) {
         //1,先看redis里面是否有，有就不用再次发送
-        String redisCode = redisUtil.getCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData());
+        String redisCode = redisUtil.getCacheObject(RedisConst.auth_code_by_key + model.getData());
         //2,redis没有，则发送并且将其加入到redis中
         if (redisCode == null) {
             redisCode = RandomUtil.randomNumbers(6);
-            redisUtil.setCacheObject(RedisConst.REDIS_LOGIN_CODE + model.getData(), redisCode, 5, TimeUnit.MINUTES);
+            redisUtil.setCacheObject(RedisConst.auth_code_by_key + model.getData(), redisCode, 5, TimeUnit.MINUTES);
         }
         return R.ok(Code.CODE_SEND_SUCCESS, redisCode);
     }

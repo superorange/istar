@@ -1,7 +1,9 @@
 package com.example.istar.model.inter;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.example.istar.utils.Exp;
 import com.example.istar.utils.ResultCode;
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * @author tian
@@ -12,6 +14,8 @@ public interface RequestCheckerInterface {
      *
      * @return boolean 是否正确，必须重写
      */
+    @ApiModelProperty(hidden = true)
+    @JSONField(serialize = false)
     boolean isCorrect();
 
     /**

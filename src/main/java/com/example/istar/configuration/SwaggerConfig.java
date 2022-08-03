@@ -15,11 +15,12 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
+    //篝火-年轻人的社交圈
     @Bean(value = "api")
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
                 .apiInfo(new ApiInfoBuilder()
-                        .title("篝火-年轻人的社交圈")
+                        .title("abcTest")
                         .description("测试swagger2接口文档生成工具")
                         .termsOfServiceUrl("https://www.xx.com/")
 

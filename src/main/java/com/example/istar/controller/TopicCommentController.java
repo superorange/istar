@@ -51,7 +51,9 @@ public class TopicCommentController {
         //// 判断主题是否存在
         if (topicEntity == null) {
             return R.fail(ResultCode.NOT_FOUND);
-        } else if (topicEntity.getStatus() != 0) {
+        }
+        ///判断主题是否允许评论
+        else if (!Roles.hasPublicEdit(topicEntity.getStatus())) {
             return R.fail(ResultCode.RESOURCE_FORBIDDEN);
         }
         //新增一个评论对象

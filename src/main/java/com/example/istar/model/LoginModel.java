@@ -17,7 +17,6 @@ public class LoginModel implements RequestCheckerInterface {
     @ApiModelProperty(value = "登录验证码")
     String code;
 
-    @JSONField(serialize = false)
     @Override
     public boolean isCorrect() {
         return ObjectUtil.isAllNotEmpty(data, code) && RegexTool.isEmailOrMobile(data);

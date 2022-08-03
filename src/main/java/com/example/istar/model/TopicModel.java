@@ -1,6 +1,7 @@
 package com.example.istar.model;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.annotation.JSONField;
 import com.example.istar.model.inter.RequestCheckerInterface;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -17,12 +18,12 @@ public class TopicModel implements RequestCheckerInterface {
     private String title;
     @ApiModelProperty(value = "文章内容")
     private String content;
+    @ApiModelProperty(value = "图片")
+    private MultipartFile[] pictures;
     @ApiModelProperty(value = "文章图片id列表")
     private Set<String> pictureIds;
     @ApiModelProperty(value = "文章视频id列表")
     private Set<String> videoIds;
-    @ApiModelProperty(value = "图片")
-    private MultipartFile[] pictures;
 
     @Override
     @ApiModelProperty(hidden = true)

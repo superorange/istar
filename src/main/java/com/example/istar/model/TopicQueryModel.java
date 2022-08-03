@@ -10,6 +10,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class TopicQueryModel extends QueryPageModel {
-    @ApiModelProperty("查询谁的，owner为self查询自己")
-    private String owner;
+    @ApiModelProperty("查询谁的，查询自己")
+    private String uuid;
 }

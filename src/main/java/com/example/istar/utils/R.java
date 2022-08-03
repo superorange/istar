@@ -80,5 +80,8 @@ public class R<T> implements Serializable {
     public static <T> R<T> fail(ResultCode resultCode) {
         return new R<>(resultCode);
     }
+    public static <T> R<T> fail(ResultCode resultCode,T data) {
+        return new R<>(resultCode,data);
+    }
 
 }

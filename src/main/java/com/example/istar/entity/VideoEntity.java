@@ -61,7 +61,7 @@ public class VideoEntity implements Serializable {
 
     @ApiModelProperty(value = "创建时间", dataType = "java.lang.String")
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
-    private Long gmtCreate;
+    private Long createTime;
 
 
 }
