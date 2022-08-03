@@ -1,12 +1,10 @@
 package com.example.istar.utils;
 
 import com.example.istar.common.RedisConst;
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -22,7 +20,7 @@ public class LikeUtil {
     private static final ConcurrentHashMap<String, ReentrantLock> LOCK_MAP = new ConcurrentHashMap<>();
 
     public boolean autoIncrementTopicLike(String topicId) {
-        String key = RedisConst.REDIS_TOPIC_LIKE + topicId;
+        String key = RedisConst.TOPIC_LIKE_BY_TOPIC_ID + topicId;
         synchronized (key.intern()) {
             Integer like = redisUtil.getCacheObject(key);
             if (like == null) {
@@ -57,7 +55,7 @@ public class LikeUtil {
     }
 
     public boolean addTopicLike(String topicId, int like) {
-        String key = RedisConst.REDIS_TOPIC_LIKE + topicId;
+        String key = RedisConst.TOPIC_LIKE_BY_TOPIC_ID + topicId;
         synchronized (key.intern()) {
             redisUtil.setCacheObject(key, like);
             return true;
@@ -65,13 +63,13 @@ public class LikeUtil {
     }
 
     public boolean deleteTopicLike(String topicId) {
-        String key = RedisConst.REDIS_TOPIC_LIKE + topicId;
+        String key = RedisConst.TOPIC_LIKE_BY_TOPIC_ID + topicId;
         return redisUtil.deleteObject(key);
 
     }
 
     public Integer getTopicLike(String topicId) {
-        String key = RedisConst.REDIS_TOPIC_LIKE + topicId;
+        String key = RedisConst.TOPIC_LIKE_BY_TOPIC_ID + topicId;
         return redisUtil.getCacheObject(key);
 
     }
