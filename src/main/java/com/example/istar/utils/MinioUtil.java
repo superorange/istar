@@ -1,6 +1,7 @@
 package com.example.istar.utils;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ObjectUtil;
 import io.minio.*;
 import io.minio.http.Method;
 import io.minio.messages.Bucket;
@@ -253,7 +254,11 @@ public class MinioUtil {
      * @param files 文件列表
      */
     public List<MinioUploadWrapper> uploadFile(MultipartFile[] files) throws Exception {
+        if (ObjectUtil.isEmpty(files)) {
+            return null;
+        }
         List<MinioUploadWrapper> list = new ArrayList<>();
+
         for (MultipartFile file : files) {
             String fileName = FileUtil.getName(file.getOriginalFilename());
             String fileId;

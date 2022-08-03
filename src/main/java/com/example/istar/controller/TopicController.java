@@ -78,14 +78,17 @@ public class TopicController {
         topicEntity.setContent(model.getContent());
         //上传图片到minio
         List<MinioUtil.MinioUploadWrapper> minioItems = minioUtil.uploadFile(model.getPictures());
-        //生成图片实体
-        List<PictureEntity> pictureEntities = pictureUtil.getEntitiesByMinioWrapper(minioItems);
-        //将图片实体设置到主题中
-        topicEntity.setPictureIdList(pictureEntities.stream().map(PictureEntity::getPicId).collect(Collectors.toList()));
-        //存储到数据库
-        boolean saveBatch = picturesService.saveBatch(pictureEntities);
-        if (!saveBatch) {
-            return R.fail(277, "图片存储失败");
+        List<PictureEntity> pictureEntities = null;
+        if (minioItems != null) {
+            //生成图片实体
+            pictureEntities = pictureUtil.getEntitiesByMinioWrapper(minioItems);
+            //将图片实体设置到主题中
+            topicEntity.setPictureIdList(pictureEntities.stream().map(PictureEntity::getPicId).collect(Collectors.toList()));
+            //存储到数据库
+            boolean saveBatch = picturesService.saveBatch(pictureEntities);
+            if (!saveBatch) {
+                return R.fail(277, "图片存储失败");
+            }
         }
         boolean save = topicService.save(topicEntity);
         if (!save) {
@@ -230,7 +233,9 @@ public class TopicController {
         TopicEntityWrapperDto dto = new TopicEntityWrapperDto();
         BeanUtils.copyProperties(topicEntity, dto);
         if (pictureEntities == null) {
-            dto.setPictures(pictureUtil.getEntities(new HashSet<>(topicEntity.getPictureIdList())));
+            if (ObjectUtil.isNotEmpty(topicEntity.getPictureIdList())) {
+                dto.setPictures(pictureUtil.getEntities(new HashSet<>(topicEntity.getPictureIdList())));
+            }
         } else {
             dto.setPictures(pictureEntities);
         }

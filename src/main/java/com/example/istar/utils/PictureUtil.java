@@ -39,6 +39,10 @@ public class PictureUtil {
 
 
     public List<PictureEntity> getEntitiesByMinioWrapper(List<MinioUtil.MinioUploadWrapper> wrappers) {
+        if (ObjectUtil.isEmpty(wrappers)) {
+            return null;
+        }
+
         return wrappers.stream().map(f -> {
             PictureEntity pictureEntity = new PictureEntity();
             try {

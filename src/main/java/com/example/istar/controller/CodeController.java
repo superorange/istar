@@ -31,6 +31,11 @@ public class CodeController {
     @PostMapping("/send")
     public R sendCode(@RequestBody CodeModel model) throws Exp {
         model.check();
+        //1,先看redis里面是否有，有就不用再次发送
+        String redisCode = redisUtil.getCacheObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
+        if (redisCode != null) {
+            return R.ok(Code.CODE_SEND_SUCCESS, redisCode);
+        }
         String key = RedisConst.AUTH_CID_BY_KEY + model.getData();
         String cacheObject = redisUtil.getCacheObject(key);
         if (ObjectUtil.isNull(cacheObject)) {
