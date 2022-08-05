@@ -51,7 +51,7 @@ public class PictureUtil {
                 throw new RuntimeException(e);
             }
             pictureEntity.setPicId(f.getFileId());
-            pictureEntity.setPicUrl(f.getFileBucketName());
+            pictureEntity.setPicUrl(minioUtil.getBasisUrl() + f.getFileBucketName());
             pictureEntity.setPicName(f.getFileOriginName());
             pictureEntity.setPicType(Const.PICTURE_TYPE_TOPIC);
             pictureEntity.setStatus(0);
