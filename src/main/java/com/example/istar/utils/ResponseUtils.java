@@ -14,15 +14,14 @@ import java.io.IOException;
  */
 public class ResponseUtils {
 
-    public static void writeErrorInfo(HttpServletResponse response, ResultCode resultCode) {
-        String jsonString = JSON.toJSONString(new R<>(resultCode));
+    public static void writeErrorInfo(HttpServletResponse response, Exp exp) {
         response.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Cache-Control", "no-cache");
-        response.setStatus(resultCode.getCode());
+        response.setStatus(exp.getHttpStatus());
         response.setCharacterEncoding("UTF-8");
         try {
-            response.getWriter().write(jsonString);
+            response.getWriter().write(JSON.toJSONString(exp));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

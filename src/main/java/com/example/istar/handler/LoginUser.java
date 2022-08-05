@@ -4,9 +4,10 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.example.istar.entity.UserEntity;
 import com.example.istar.utils.Exp;
-import com.example.istar.utils.ResultCode;
+import com.example.istar.utils.ErrorMsg;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -89,7 +90,7 @@ public class LoginUser implements UserDetails, Serializable {
         if (principal instanceof LoginUser) {
             return (LoginUser) principal;
         }
-        throw Exp.from(ResultCode.AUTH_FAILED);
+        throw Exp.from(HttpStatus.UNAUTHORIZED, 40100, ErrorMsg.UNAUTHORIZED);
     }
 
     public static boolean isSelf(String uuid) throws Exp {
@@ -99,7 +100,7 @@ public class LoginUser implements UserDetails, Serializable {
     public static String getUuidAndThrow() throws Exp {
         String uuid = getCurrentUserAndThrow().getUserEntity().getUuid();
         if (ObjectUtil.isNull(uuid)) {
-            throw Exp.from(ResultCode.AUTH_FAILED);
+            throw Exp.from(HttpStatus.UNAUTHORIZED, 40101, ErrorMsg.UNAUTHORIZED);
         }
         return uuid;
     }

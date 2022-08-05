@@ -1,8 +1,8 @@
 package com.example.istar.controller;
 
 import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.RedisConst;
 import com.example.istar.common.Roles;
@@ -12,13 +12,14 @@ import com.example.istar.entity.UserEntity;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.model.PageModel;
 import com.example.istar.model.LoginModel;
+import com.example.istar.model.UserUpdateModel;
 import com.example.istar.service.impl.UserServiceImpl;
 import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -42,40 +43,43 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     @Resource
     private RedisUtil redisUtil;
-
+    @Resource
+    private MinioUtil minioUtil;
 
     @PostMapping("/login")
     @ApiOperation(value = "注册/登录", notes = "用户注册,或者登录")
-    public R<UserWrapperDto> preRegister(@RequestBody LoginModel model) throws Exp {
+    public Res<UserWrapperDto> login(@RequestBody LoginModel model) throws Exp {
         model.check();
         ///1, 校验验证码
         String redisCode = redisUtil.getCacheObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
         if (redisCode != null && redisCode.equals(model.getCode())) {
             ///校验成功,删除验证码
             redisUtil.deleteObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
-            UserEntity userEntity = null;
+            UserEntity userEntity;
             if (RegexTool.isEmail(model.getData())) {
                 userEntity = userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getEmail, model.getData()));
             } else if (RegexTool.isMobiles(model.getData())) {
                 userEntity = userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getMobile, model.getData()));
+            } else {
+                throw Exp.from(HttpStatus.BAD_REQUEST, 4001, "手机号或邮箱格式不正确");
             }
             ///新用户
             if (userEntity == null) {
                 userEntity = generateUser(model);
                 boolean save = userService.save(userEntity);
                 if (!save) {
-                    return R.fail(ResultCode.REGISTER_ERROR);
+                    return Res.fail(ErrorMsg.DATABASE_ERROR);
                 }
             }
             String token = SafeUtil.generateToken(userEntity.getUuid());
             if (token == null) {
-                return R.fail(ResultCode.FAILED);
+                return Res.fail("生成token失败，请稍后再试");
             }
             LoginUser loginUser = new LoginUser(userEntity, Arrays.asList(userEntity.getRoles().split(",")));
             redisUtil.setCacheObject(RedisConst.USER_INFO_BY_UUID + userEntity.getUuid(), loginUser, SafeUtil.EXPIRE_TIME, SafeUtil.TIME_UNIT);
-            return R.ok(new UserWrapperDto(token, userEntity));
+            return Res.ok(new UserWrapperDto(token, userEntity));
         }
-        return R.fail(ResultCode.CODE_ERROR);
+        return Res.fail(ErrorMsg.CODE_ERROR);
 
 
     }
@@ -105,19 +109,19 @@ public class UserController {
     @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
     @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("")
-    public R<PageWrapperDto<UserEntity>> getUsers(PageModel pageModel) {
+    public Res<PageWrapperDto<UserEntity>> getUsers(PageModel pageModel) {
         LambdaQueryWrapper<UserEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderBy(true, pageModel.isAsc(), UserEntity::getId);
         Page<UserEntity> page = new Page<>(pageModel.getCurrentIndex(), pageModel.getCurrentCount());
         Page<UserEntity> entityPage = userService.page(page, queryWrapper);
-        return R.ok(PageWrapperDto.wrap(entityPage));
+        return Res.ok(PageWrapperDto.wrap(entityPage));
     }
 
     @ApiOperation(value = "获取单个用户信息", notes = "获取单个用户信息")
     @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("/{uuid}")
-    public R<UserEntity> getUser(@PathVariable String uuid) {
-        return R.ok(userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUuid, uuid)));
+    public Res<UserEntity> getUser(@PathVariable String uuid) {
+        return Res.ok(userService.getOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUuid, uuid)));
     }
 
     /**
@@ -127,29 +131,40 @@ public class UserController {
      */
     @PatchMapping("")
     @ApiOperation(value = "用户更新", notes = "用户更新", response = UserEntity.class)
-    public R<UserEntity> updateUser() {
-        return R.ok();
+    public Res<UserEntity> updateUser(UserUpdateModel model) throws Exception {
+        String uuid = LoginUser.getUuidAndThrow();
+        LambdaQueryWrapper<UserEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserEntity::getUuid, uuid);
+        UserEntity userEntity = userService.getOne(queryWrapper);
+        if (userEntity == null) {
+            return Res.fail(ErrorMsg.USER_NOT_EXIST);
+        }
+        if (model.getAvatar() != null) {
+            MinioUtil.MinioUploadWrapper minioUploadWrapper = minioUtil.uploadFile(model.getAvatar());
+            userEntity.setAvatar(minioUploadWrapper.getFileId());
+        }
+        userEntity.setNickName(model.getNickName());
+        userEntity.setModifyTime(System.currentTimeMillis());
+        boolean id = userService.updateById(userEntity);
+        return id ? Res.ok() : Res.fail(5336, ErrorMsg.DATABASE_ERROR);
     }
 
     @DeleteMapping("/{uuid}")
     @ApiOperation(value = "用户销户", notes = "用户销户")
-    public R<Boolean> deleteUser(@PathVariable String uuid) throws Exp {
-        LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        //是自己或者是超级管理员，则可以删除
-        if (loginUser.getUserEntity().getUuid().equals(uuid) || loginUser.getUserEntity().getRoles().equals(Roles.SYS_SUPER_ADMIN)) {
-            QueryWrapper<UserEntity> wrapper = new QueryWrapper<>();
-            wrapper.eq("uuid", loginUser.getUserEntity().getUuid());
-            UserEntity one = userService.getOne(wrapper);
-            if (one != null) {
-                one.setStatus(-1);
-                boolean update = userService.updateById(one);
-                redisUtil.deleteObject(RedisConst.USER_INFO_BY_UUID + loginUser.getUserEntity().getUuid());
-                return update ? R.ok() : R.fail(ResultCode.OPERATION_FAILED);
-            }
-            return R.fail();
-
+    public Res<Boolean> deleteUser(@PathVariable String uuid) throws Exp {
+        String loginUuid = LoginUser.getUuidAndThrow();
+        if (!loginUuid.equals(uuid) && !Roles.isSuperAdmin()) {
+            return Res.fail(ErrorMsg.OPERATION_FORBIDDEN);
         }
-        return R.fail(ResultCode.OPERATION_FORBIDDEN);
+        LambdaQueryWrapper<UserEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserEntity::getUuid, uuid);
+        queryWrapper.select(UserEntity::getId);
+        UserEntity one = userService.getOne(queryWrapper);
+        if (ObjectUtil.isNull(one)) {
+            return Res.fail(ErrorMsg.USER_NOT_EXIST);
+        }
+        boolean b = userService.removeById(one.getId());
+        return b ? Res.ok() : Res.fail(5337, ErrorMsg.DATABASE_ERROR);
     }
 
 

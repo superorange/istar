@@ -1,13 +1,10 @@
 package com.example.istar.handler;
 
+import com.alibaba.fastjson.JSON;
 import com.example.istar.utils.Exp;
-import com.example.istar.utils.R;
-import com.example.istar.utils.ResultCode;
-import org.springframework.data.redis.hash.HashMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -22,40 +19,32 @@ import java.util.List;
  */
 @ResponseBody
 @RestControllerAdvice
-@ResponseStatus(HttpStatus.OK)
 public class ControllerExceptionHandler {
 
     @ExceptionHandler(Exp.class)
-    public R handleAccessExp(Exp exception) {
-        return R.fail(exception.getCode(), exception.getMsg());
+    public ResponseEntity<HashMap<String, Object>> handleAccessExp(Exp exception) {
+        return ResponseEntity.status(exception.getHttpStatus()).contentType(MediaType.APPLICATION_JSON).body(exception.getMapJson());
     }
 
     @ExceptionHandler(BindException.class)
-    public R<List<HashMap<String, Object>>> handleAccessExp(BindException exception) {
-        ArrayList<HashMap<String, Object>> objects = new ArrayList<>();
+    public ResponseEntity<List<HashMap<String, Object>>> handleAccessExp(BindException exception) {
+        ArrayList<HashMap<String, Object>> body = new ArrayList<>();
         for (FieldError error : exception.getFieldErrors()) {
             HashMap<String, Object> mapper = new HashMap<>(2);
-            mapper.put("errorFiled", error.getField());
-            mapper.put("errorMsg", error.getDefaultMessage());
-            objects.add(mapper);
+            mapper.put("filed", error.getField());
+            mapper.put("msg", error.getDefaultMessage());
+            body.add(mapper);
         }
-        return R.fail(ResultCode.ERROR_PARAM, objects);
-    }
-
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public R handleAccessDeniedException(AccessDeniedException exception) {
-        return R.fail(ResultCode.PERMISSION_FAILED);
-    }
-
-    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
-    public R handleUsernameNotFoundException(Exception exception) {
-        return R.fail(ResultCode.LOGIN_FAILED);
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
     @ExceptionHandler(Exception.class)
-    public R<?> handleRepException(Exception exception) {
-        return R.fail(exception.toString(), exception.getStackTrace());
+    public ResponseEntity<Object> handleRepException(Exception exception) {
+        HashMap<String, Object> hashMap = new HashMap<>(2);
+        hashMap.put("data", exception.getStackTrace());
+        hashMap.put("msg", exception.getMessage());
+
+        return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(hashMap);
     }
 
 }

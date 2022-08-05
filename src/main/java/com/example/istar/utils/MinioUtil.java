@@ -10,6 +10,7 @@ import io.minio.messages.Item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -260,28 +261,39 @@ public class MinioUtil {
         List<MinioUploadWrapper> list = new ArrayList<>();
 
         for (MultipartFile file : files) {
-            String fileName = FileUtil.getName(file.getOriginalFilename());
-            String fileId;
-            if (fileName == null) {
-                throw Exp.from(ResultCode.ERROR_PARAM);
-            }
-            String[] split = fileName.split("\\.");
-            if (split.length > 1) {
-                fileId = CommonUtil.generateTimeId(split[0]) + "." + split[1];
-            } else {
-                fileId = CommonUtil.generateTimeId(fileName);
-            }
-            InputStream inputStream = file.getInputStream();
-            ObjectWriteResponse objectWriteResponse = minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(fileId)
-                            .contentType(file.getContentType())
-                            .stream(inputStream, inputStream.available(), -1)
-                            .build());
-            list.add(new MinioUploadWrapper(objectWriteResponse, fileName, fileId));
+            list.add(upload(file));
         }
         return list;
+    }
+
+    public MinioUploadWrapper uploadFile(MultipartFile file) throws Exception {
+        if (ObjectUtil.isNull(file)) {
+            return null;
+        }
+        return upload(file);
+    }
+
+    private MinioUploadWrapper upload(MultipartFile file) throws Exception {
+        String fileName = FileUtil.getName(file.getOriginalFilename());
+        String fileId;
+        if (fileName == null) {
+            throw Exp.from(HttpStatus.BAD_REQUEST, 6001, ErrorMsg.PARAM_ERROR);
+        }
+        String[] split = fileName.split("\\.");
+        if (split.length > 1) {
+            fileId = CommonUtil.generateTimeId(split[0]) + "." + split[1];
+        } else {
+            fileId = CommonUtil.generateTimeId(fileName);
+        }
+        InputStream inputStream = file.getInputStream();
+        ObjectWriteResponse objectWriteResponse = minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(fileId)
+                        .contentType(file.getContentType())
+                        .stream(inputStream, inputStream.available(), -1)
+                        .build());
+        return new MinioUploadWrapper(objectWriteResponse, fileName, fileId);
     }
 
     /**

@@ -3,7 +3,7 @@ package com.example.istar.controller;
 import com.example.istar.common.RedisConst;
 import com.example.istar.model.CheckModel;
 import com.example.istar.utils.CommonUtil;
-import com.example.istar.utils.R;
+import com.example.istar.utils.Res;
 import com.example.istar.utils.RedisUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,14 +28,14 @@ public class SafeController {
 
     @PostMapping("/check")
     @ApiOperation(value = "检查动态检查")
-    public R<CheckModel> safeCheck(@RequestParam String data) {
+    public Res<CheckModel> safeCheck(@RequestParam String data) {
         //TODO 后面在写安全计划，现在统统不安全
         //1,如果安全，直接放行
         //2,不安全，需要滑块验证
         //不安全情况下，先判断redis里面是否有缓存
         CheckModel checkModel = new CheckModel(CommonUtil.generateTimeId());
         redisUtil.setCacheObject(RedisConst.AUTH_CID_BY_KEY + data, checkModel.getCheckId());
-        return R.ok(checkModel);
+        return Res.ok(checkModel);
     }
 
 }

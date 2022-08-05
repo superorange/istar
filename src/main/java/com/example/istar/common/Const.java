@@ -14,4 +14,6 @@ public interface Const {
      * 图片类型
      */
     String PICTURE_TYPE_TOPIC = "TOPIC";
+
+    String Authorization= "Authorization";
 }

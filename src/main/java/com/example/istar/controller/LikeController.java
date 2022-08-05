@@ -2,8 +2,9 @@ package com.example.istar.controller;
 
 import com.example.istar.service.impl.CommentServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
+import com.example.istar.utils.Exp;
 import com.example.istar.utils.LikeUtil;
-import com.example.istar.utils.R;
+import com.example.istar.utils.Res;
 import com.example.istar.utils.RedisUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,23 +34,23 @@ public class LikeController {
 
     @ApiOperation("添加主题的喜欢")
     @PostMapping("/topic/{id}")
-    public R addTopicLike(@PathVariable String id) {
-        boolean b = likeUtil.autoIncrementTopicLike(id);
-        return b ? R.ok() : R.fail();
+    public Res addTopicLike(@PathVariable String id) throws Exp {
+        likeUtil.autoIncrementTopicLike(id);
+        return Res.ok();
     }
 
     @ApiOperation("添加评论的喜欢")
     @PostMapping("/comment/{id}")
-    public R addCommentLike(@PathVariable String id) {
-        boolean b = likeUtil.autoIncrementCommentLike(id);
-        return b ? R.ok() : R.fail();
+    public Res addCommentLike(@PathVariable String id) throws Exp {
+        likeUtil.autoIncrementCommentLike(id);
+        return Res.ok();
     }
 
     @ApiOperation("添加回复的喜欢")
     @PostMapping("/replay/{id}")
-    public R addReplayLike(@PathVariable String id) {
-        boolean b = likeUtil.autoIncrementReplyLike(id);
-        return b ? R.ok() : R.fail();
+    public Res addReplayLike(@PathVariable String id) throws Exp {
+        likeUtil.autoIncrementReplyLike(id);
+        return Res.ok();
     }
 
 

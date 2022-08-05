@@ -3,7 +3,7 @@ package com.example.istar.configuration;
 import cn.hutool.crypto.digest.MD5;
 import com.example.istar.common.PermitUrl;
 import com.example.istar.filter.GatewayLogFilter;
-import com.example.istar.filter.JwtAuthenticationFilter;
+import com.example.istar.filter.AuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +32,7 @@ import javax.annotation.Resource;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAdapter {
     @Resource
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    private AuthenticationFilter authenticationFilter;
     @Resource
     private GatewayLogFilter gatewayLogFilter;
     @Resource
@@ -69,7 +69,7 @@ public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAda
         http.formLogin().disable();
         http.csrf().disable();
         ///TODO 开启自定义的过滤器
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(gatewayLogFilter, ChannelProcessingFilter.class);
         ///TODO 开启自定义的登录失败处理
         http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler);

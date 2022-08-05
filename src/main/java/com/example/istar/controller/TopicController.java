@@ -19,6 +19,7 @@ import com.example.istar.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,7 +67,7 @@ public class TopicController {
     @PostMapping("")
     @ApiOperation(value = "添加帖子")
     @PreAuthorize("@userExpression.mustLogin()")
-    public R<TopicEntityWrapperDto> addTopic(TopicModel model) throws Exception {
+    public Res<TopicEntityWrapperDto> addTopic(TopicModel model) throws Exception {
         model.check();
         ///置空传来的pid和vid
         model.setPictureIds(new HashSet<>());
@@ -87,37 +88,37 @@ public class TopicController {
             //存储到数据库
             boolean saveBatch = picturesService.saveBatch(pictureEntities);
             if (!saveBatch) {
-                return R.fail(277, "图片存储失败");
+                return Res.fail(277, "图片存储失败");
             }
         }
         boolean save = topicService.save(topicEntity);
         if (!save) {
-            return R.fail(278, "文章新增失败");
+            return Res.fail(278, "文章新增失败");
         }
         //包裹实体到返回的对象
         TopicEntityWrapperDto dto = wrapEntity(topicEntity, pictureEntities);
-        return R.ok(dto);
+        return Res.ok(dto);
     }
 
 
     @GetMapping("/{topicId}")
     @ApiOperation(value = "获取帖子")
-    public R<TopicEntityWrapperDto> getTopic(@PathVariable("topicId") String topicId) throws Exp {
+    public Res<TopicEntityWrapperDto> getTopic(@PathVariable("topicId") String topicId) throws Exp {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         //排除不可见的帖子
         lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
         lambdaQueryWrapper.eq(TopicEntity::getStatus, 0);
         TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
         if (topicEntity == null) {
-            return R.fail(ResultCode.NOT_FOUND);
+            throw Exp.from(HttpStatus.NOT_FOUND, 4007, ErrorMsg.NOT_FOUND);
         }
         TopicEntityWrapperDto dto = wrapEntity(topicEntity, null);
-        return R.ok(dto);
+        return Res.ok(dto);
     }
 
     @GetMapping("")
     @ApiOperation(value = "获取帖子列表")
-    public R<PageWrapperDto<TopicEntityWrapperDto>> getTopics(QueryPageModel model) throws Exp {
+    public Res<PageWrapperDto<TopicEntityWrapperDto>> getTopics(QueryPageModel model) throws Exp {
         //数据校验
         if (ObjectUtil.isNull(model)) {
             model = new QueryPageModel();
@@ -156,13 +157,13 @@ public class TopicController {
                         throw new RuntimeException(e);
                     }
                 }).collect(Collectors.toList());
-        return R.ok(PageWrapperDto.wrap(wrappers));
+        return Res.ok(PageWrapperDto.wrap(wrappers));
     }
 
     @DeleteMapping("/{topicId}")
     @ApiOperation(value = "删除帖子")
     @PreAuthorize("@userExpression.mustLogin()")
-    public R<Boolean> deleteTopic(@PathVariable("topicId") String topicId) throws Exp {
+    public Res<Boolean> deleteTopic(@PathVariable("topicId") String topicId) throws Exp {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.select(TopicEntity::getUuid, TopicEntity::getStatus);
         lambdaQueryWrapper.eq(TopicEntity::getTopicId, topicId);
@@ -173,41 +174,41 @@ public class TopicController {
                 if (Roles.ownerCanEdit(topicEntity.getStatus())) {
                     topicEntity.setStatus(Roles.SELF_DELETE);
                     boolean save = topicService.updateById(topicEntity);
-                    return save ? R.ok(true) : R.fail();
+                    return save ? Res.ok(true) : Res.fail(6603, ErrorMsg.DATABASE_ERROR);
                 }
-                return R.fail(ResultCode.OPERATION_FAILED);
+                return Res.fail(ErrorMsg.DATABASE_ERROR);
             }
             //超级管理员可以删除,设置状态为-2
             else if (Roles.isSuperAdmin()) {
                 topicEntity.setStatus(Roles.ADMIN_DELETE);
                 boolean save = topicService.updateById(topicEntity);
-                return save ? R.ok(true) : R.fail();
+                return save ? Res.ok(true) : Res.fail(6604, ErrorMsg.DATABASE_ERROR);
             }
-            return R.fail(ResultCode.OPERATION_FORBIDDEN);
+            return Res.fail(ErrorMsg.OPERATION_FORBIDDEN);
         }
-        return R.ok(true);
+        return Res.ok(true);
     }
 
 
     @PutMapping("/{id}")
     @ApiOperation(value = "修改帖子")
     @PreAuthorize("@userExpression.mustLogin()")
-    public R<TopicEntityWrapperDto> updateTopic(@PathVariable("id") String id, TopicModel model) throws Exception {
+    public Res<TopicEntityWrapperDto> updateTopic(@PathVariable("id") String id, TopicModel model) throws Exception {
         LambdaQueryWrapper<TopicEntity> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(TopicEntity::getTopicId, id);
         lambdaQueryWrapper.select(TopicEntity::getTopicId);
         TopicEntity topicEntity = topicService.getOne(lambdaQueryWrapper);
         //查询是否有该资源
         if (topicEntity == null) {
-            return R.fail(ResultCode.NOT_FOUND);
+            return Res.fail(ErrorMsg.NOT_FOUND);
         }
         //判断所有权
         if (!LoginUser.isSelf(topicEntity.getUuid())) {
-            return R.fail(ResultCode.PERMISSION_FAILED);
+            return Res.fail(ErrorMsg.NO_PERMISSION);
         }
         //判断是否可以更改
         if (!Roles.ownerCanEdit(topicEntity.getStatus())) {
-            return R.fail(ResultCode.RESOURCE_FORBIDDEN);
+            return Res.fail(ErrorMsg.RESOURCE_LOCKED);
         }
         topicEntity.setTitle(model.getTitle());
         topicEntity.setContent(model.getContent());
@@ -225,7 +226,7 @@ public class TopicController {
 
         boolean save = topicService.updateById(topicEntity);
         TopicEntityWrapperDto dto = wrapEntity(topicEntity, pictureEntities1);
-        return save ? R.ok(dto) : R.fail("数据库更新失败");
+        return save ? Res.ok(dto) : Res.fail("数据库更新失败");
     }
 
 

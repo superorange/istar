@@ -27,7 +27,7 @@ captcha:
       # 二次验证缓存key前缀，默认是 captcha:secondary
       keyPrefix: "captcha:secondary"
 minio:
-  endpoint: http://192.168.123.173:9000
+  endpoint: http://127.0.0.1:9000
   accessKey: admin
   secretKey: 12345678
   bucketName: main-bucket

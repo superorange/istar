@@ -42,18 +42,18 @@ public class CommentController {
      */
     @ApiOperation(value = "新增评论")
     @PostMapping("")
-    public R<CommentEntity> addComment(TopicCommentModel model) throws Exception {
+    public Res<CommentEntity> addComment(TopicCommentModel model) throws Exception {
         model.check();
         LambdaQueryWrapper<TopicEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TopicEntity::getTopicId, model.getTopicId());
         TopicEntity topicEntity = topicService.getOne(wrapper);
         //// 判断主题是否存在
         if (topicEntity == null) {
-            return R.fail(ResultCode.NOT_FOUND);
+            return Res.fail(ErrorMsg.NOT_FOUND);
         }
         ///判断主题是否允许评论
         else if (!Roles.publicCanSee(topicEntity.getStatus())) {
-            return R.fail(ResultCode.RESOURCE_FORBIDDEN);
+            return Res.fail(ErrorMsg.RESOURCE_LOCKED);
         }
         //新增一个评论对象
         CommentEntity commentEntity = new CommentEntity();
@@ -65,12 +65,12 @@ public class CommentController {
         commentEntity.setStatus(0);
         commentEntity.setCreateTime(System.currentTimeMillis());
         boolean a = topicCommentService.save(commentEntity);
-        return a ? R.ok(commentEntity) : R.fail(ResultCode.OPERATION_FAILED);
+        return a ? Res.ok(commentEntity) : Res.fail(ErrorMsg.DATABASE_ERROR);
     }
 
     @ApiOperation(value = "分页获取主题下评论")
     @GetMapping("")
-    public R<PageWrapperDto<CommentEntity>> getComments(QueryPageModel model) {
+    public Res<PageWrapperDto<CommentEntity>> getComments(QueryPageModel model) {
         if (ObjectUtil.isNull(model)) {
             model = new QueryPageModel();
         }
@@ -81,7 +81,7 @@ public class CommentController {
         //排序
         Page<CommentEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
         Page<CommentEntity> entityPage = topicCommentService.page(page, wrapper);
-        return R.ok(PageWrapperDto.wrap(entityPage));
+        return Res.ok(PageWrapperDto.wrap(entityPage));
     }
 
     /**
@@ -90,21 +90,21 @@ public class CommentController {
      */
     @ApiOperation(value = "删除评论")
     @DeleteMapping("/{id}")
-    public R<Boolean> deleteComment(@PathVariable("id") String commentId) throws Exp {
+    public Res<Boolean> deleteComment(@PathVariable("id") String commentId) throws Exp {
         LambdaQueryWrapper<CommentEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CommentEntity::getCommentId, commentId);
         CommentEntity entity = topicCommentService.getOne(wrapper);
         if (entity == null) {
-            return R.fail(ResultCode.NOT_FOUND);
+            return Res.fail(ErrorMsg.NOT_FOUND);
         }
         if (Roles.isSuperAdmin()) {
             entity.setStatus(-3);
-            return R.ok(topicCommentService.updateById(entity));
+            return Res.ok(topicCommentService.updateById(entity));
         } else if (LoginUser.isSelf(entity.getUuid())) {
             entity.setStatus(3);
-            return R.ok(topicCommentService.updateById(entity));
+            return Res.ok(topicCommentService.updateById(entity));
         }
-        return R.fail(ResultCode.PERMISSION_FAILED);
+        return Res.fail(ErrorMsg.NO_PERMISSION);
 
     }
 }

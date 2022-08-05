@@ -29,17 +29,17 @@ public class CodeController {
 
     @ApiOperation(value = "发送验证码", notes = "用户发送验证码")
     @PostMapping("/send")
-    public R sendCode(@RequestBody CodeModel model) throws Exp {
+    public Res sendCode(@RequestBody CodeModel model) throws Exp {
         model.check();
         //1,先看redis里面是否有，有就不用再次发送
         String redisCode = redisUtil.getCacheObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
         if (redisCode != null) {
-            return R.ok(Code.CODE_SEND_SUCCESS, redisCode);
+            return Res.ok(Code.CODE_SEND_SUCCESS, redisCode);
         }
         String key = RedisConst.AUTH_CID_BY_KEY + model.getData();
         String cacheObject = redisUtil.getCacheObject(key);
         if (ObjectUtil.isNull(cacheObject)) {
-            return R.fail(ResultCode.OPERATION_FORBIDDEN);
+            return Res.fail(ErrorMsg.OPERATION_FORBIDDEN);
         }
         redisUtil.deleteObject(key);
         return sendLoginCode(model);
@@ -47,17 +47,17 @@ public class CodeController {
 
     @ApiOperation(value = "生成滑块验证", notes = "用户生成滑块验证")
     @PostMapping("/gen")
-    public R<CaptchaResponse<ImageCaptchaVO>> genCode() {
+    public Res<CaptchaResponse<ImageCaptchaVO>> genCode() {
         CaptchaResponse<ImageCaptchaVO> res1 = imageCaptchaApplication.generateCaptcha(CaptchaTypeConstant.SLIDER);
 //        CaptchaResponse<ImageCaptchaVO> response = imageCaptchaApplication.generateCaptcha(CaptchaImageType.WEBP);
-        return R.ok(res1);
+        return Res.ok(res1);
     }
 
     @ApiOperation(value = "校验滑块轨迹", notes = "滑块轨迹校验")
     @PostMapping("/check")
     @ResponseBody
-    public R checkCaptcha(@RequestParam("id") String id,
-                          @RequestBody ImageCaptchaTrack imageCaptchaTrack) {
+    public Res checkCaptcha(@RequestParam("id") String id,
+                            @RequestBody ImageCaptchaTrack imageCaptchaTrack) {
 //        ImageCaptchaTrack track = new ImageCaptchaTrack();
 //        track.setBgImageHeight(imageCaptchaTrack.getBgImageHeight());
 //        track.setBgImageWidth(imageCaptchaTrack.getBgImageWidth());
@@ -74,11 +74,11 @@ public class CodeController {
 //        }).collect(Collectors.toList());
 //        track.setTrackList(collect);
         boolean result = imageCaptchaApplication.matching(id, imageCaptchaTrack);
-        return result ? R.ok() : R.fail();
+        return result ? Res.ok() : Res.fail(6999, "验证失败");
     }
 
 
-    private R sendLoginCode(CodeModel model) {
+    private Res<String> sendLoginCode(CodeModel model) {
         //1,先看redis里面是否有，有就不用再次发送
         String redisCode = redisUtil.getCacheObject(RedisConst.AUTH_CODE_BY_KEY + model.getData());
         //2,redis没有，则发送并且将其加入到redis中
@@ -86,6 +86,6 @@ public class CodeController {
             redisCode = RandomUtil.randomNumbers(6);
             redisUtil.setCacheObject(RedisConst.AUTH_CODE_BY_KEY + model.getData(), redisCode, 5, TimeUnit.MINUTES);
         }
-        return R.ok(Code.CODE_SEND_SUCCESS, redisCode);
+        return Res.ok(Code.CODE_SEND_SUCCESS, redisCode);
     }
 }
