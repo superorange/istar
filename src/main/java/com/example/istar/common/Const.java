@@ -15,5 +15,6 @@ public interface Const {
      */
     String PICTURE_TYPE_TOPIC = "TOPIC";
 
-    String Authorization= "Authorization";
+    String Authorization = "Authorization";
+    String CODE_SEND_SUCCESS = "验证码发送成功";
 }

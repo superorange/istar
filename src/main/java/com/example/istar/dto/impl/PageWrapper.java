@@ -12,21 +12,21 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-public class PageWrapperDto<T> {
+public class PageWrapper<T> {
     private Integer page;
     private Integer pageSize;
     private Integer total;
     List<T> rows;
 
-    public static <T> PageWrapperDto<T> wrap(List<T> rows) {
-        PageWrapperDto<T> objectPageWrapperModel = new PageWrapperDto<>();
+    public static <T> PageWrapper<T> wrap(List<T> rows) {
+        PageWrapper<T> objectPageWrapperModel = new PageWrapper<>();
         objectPageWrapperModel.setRows(new ArrayList<>());
         objectPageWrapperModel.getRows().addAll(rows);
         return objectPageWrapperModel;
     }
 
-    public static <T> PageWrapperDto<T> wrap(Page<T> page) {
-        PageWrapperDto<T> objectPageWrapperModel = new PageWrapperDto<>();
+    public static <T> PageWrapper<T> wrap(Page<T> page) {
+        PageWrapper<T> objectPageWrapperModel = new PageWrapper<>();
         objectPageWrapperModel.setRows(new ArrayList<>());
         objectPageWrapperModel.getRows().addAll(page.getRecords());
         return objectPageWrapperModel;

@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.Roles;
-import com.example.istar.dto.impl.PageWrapperDto;
+import com.example.istar.dto.impl.PageWrapper;
 import com.example.istar.model.QueryPageModel;
 import com.example.istar.model.TopicCommentModel;
 import com.example.istar.entity.CommentEntity;
@@ -13,6 +13,9 @@ import com.example.istar.handler.LoginUser;
 import com.example.istar.service.impl.CommentServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
 import com.example.istar.utils.*;
+import com.example.istar.utils.response.ErrorException;
+import com.example.istar.utils.response.ErrorMsg;
+import com.example.istar.utils.response.ResEntity;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -42,18 +45,18 @@ public class CommentController {
      */
     @ApiOperation(value = "新增评论")
     @PostMapping("")
-    public Res<CommentEntity> addComment(TopicCommentModel model) throws Exception {
+    public ResEntity<CommentEntity> addComment(TopicCommentModel model) throws Exception {
         model.check();
         LambdaQueryWrapper<TopicEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(TopicEntity::getTopicId, model.getTopicId());
         TopicEntity topicEntity = topicService.getOne(wrapper);
         //// 判断主题是否存在
         if (topicEntity == null) {
-            return Res.fail(ErrorMsg.NOT_FOUND);
+            return ResEntity.fail(ErrorMsg.NOT_FOUND);
         }
         ///判断主题是否允许评论
         else if (!Roles.publicCanSee(topicEntity.getStatus())) {
-            return Res.fail(ErrorMsg.RESOURCE_LOCKED);
+            return ResEntity.fail(ErrorMsg.RESOURCE_LOCKED);
         }
         //新增一个评论对象
         CommentEntity commentEntity = new CommentEntity();
@@ -62,26 +65,26 @@ public class CommentController {
         //设置评论ID
         commentEntity.setCommentId(CommonUtil.generateTimeId());
         commentEntity.setContent(model.getContent());
-        commentEntity.setStatus(0);
+        commentEntity.setStatus(Roles.PUBLIC_SEE);
         commentEntity.setCreateTime(System.currentTimeMillis());
         boolean a = topicCommentService.save(commentEntity);
-        return a ? Res.ok(commentEntity) : Res.fail(ErrorMsg.DATABASE_ERROR);
+        return a ? ResEntity.ok(commentEntity) : ResEntity.fail(ErrorMsg.DATABASE_ERROR);
     }
 
     @ApiOperation(value = "分页获取主题下评论")
     @GetMapping("")
-    public Res<PageWrapperDto<CommentEntity>> getComments(QueryPageModel model) {
+    public ResEntity<PageWrapper<CommentEntity>> getComments(QueryPageModel model) {
         if (ObjectUtil.isNull(model)) {
             model = new QueryPageModel();
         }
         LambdaQueryWrapper<CommentEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CommentEntity::getTopicId, model.getQ());
-        wrapper.eq(CommentEntity::getStatus, 0);
+        wrapper.eq(CommentEntity::getStatus, Roles.PUBLIC_SEE);
         wrapper.orderBy(true, model.isAsc(), CommentEntity::getId);
         //排序
         Page<CommentEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
         Page<CommentEntity> entityPage = topicCommentService.page(page, wrapper);
-        return Res.ok(PageWrapperDto.wrap(entityPage));
+        return ResEntity.ok(PageWrapper.wrap(entityPage));
     }
 
     /**
@@ -90,21 +93,21 @@ public class CommentController {
      */
     @ApiOperation(value = "删除评论")
     @DeleteMapping("/{id}")
-    public Res<Boolean> deleteComment(@PathVariable("id") String commentId) throws Exp {
+    public ResEntity<Boolean> deleteComment(@PathVariable("id") String commentId) throws ErrorException {
         LambdaQueryWrapper<CommentEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CommentEntity::getCommentId, commentId);
         CommentEntity entity = topicCommentService.getOne(wrapper);
         if (entity == null) {
-            return Res.fail(ErrorMsg.NOT_FOUND);
+            return ResEntity.fail(ErrorMsg.NOT_FOUND);
         }
         if (Roles.isSuperAdmin()) {
-            entity.setStatus(-3);
-            return Res.ok(topicCommentService.updateById(entity));
+            entity.setStatus(Roles.ADMIN_DELETE);
+            return ResEntity.ok(topicCommentService.updateById(entity));
         } else if (LoginUser.isSelf(entity.getUuid())) {
-            entity.setStatus(3);
-            return Res.ok(topicCommentService.updateById(entity));
+            entity.setStatus(Roles.SELF_DELETE);
+            return ResEntity.ok(topicCommentService.updateById(entity));
         }
-        return Res.fail(ErrorMsg.NO_PERMISSION);
+        return ResEntity.fail(ErrorMsg.FORBIDDEN);
 
     }
 }

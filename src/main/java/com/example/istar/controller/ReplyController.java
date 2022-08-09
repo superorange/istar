@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.Roles;
-import com.example.istar.dto.impl.PageWrapperDto;
+import com.example.istar.dto.impl.PageWrapper;
 import com.example.istar.model.QueryPageModel;
 import com.example.istar.model.TopicCommentReplayModel;
 import com.example.istar.entity.CommentEntity;
@@ -13,14 +13,15 @@ import com.example.istar.handler.LoginUser;
 import com.example.istar.service.impl.ReplyServiceImpl;
 import com.example.istar.service.impl.CommentServiceImpl;
 import com.example.istar.utils.CommonUtil;
-import com.example.istar.utils.Exp;
-import com.example.istar.utils.Res;
-import com.example.istar.utils.ErrorMsg;
+import com.example.istar.utils.response.ErrorException;
+import com.example.istar.utils.response.ResEntity;
+import com.example.istar.utils.response.ErrorMsg;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * <p>
@@ -43,14 +44,14 @@ public class ReplyController {
 
     @ApiOperation(value = "新增回复")
     @PostMapping("")
-    public Res<ReplyEntity> addReply(TopicCommentReplayModel model) throws Exp {
+    public ResEntity<ReplyEntity> addReply(TopicCommentReplayModel model) throws ErrorException {
         model.check();
         //先检查评论是否还存在
         LambdaQueryWrapper<CommentEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CommentEntity::getCommentId, model.getCommentId());
         CommentEntity commentEntity = commentService.getOne(wrapper);
-        if (commentEntity == null || commentEntity.getStatus() != 0) {
-            return Res.fail(5504, "评论已被删除，无法回复");
+        if (commentEntity == null || !Roles.publicCanSee(commentEntity.getStatus())) {
+            return ResEntity.fail(5504, "评论已被删除，无法回复");
         }
         //如果回复不为空，检查回复是否存在
         ReplyEntity toReplyEntity = null;
@@ -61,8 +62,8 @@ public class ReplyController {
             LambdaQueryWrapper<ReplyEntity> toReplyWrapper = new LambdaQueryWrapper<>();
             toReplyWrapper.eq(ReplyEntity::getReplyId, model.getToReplyId());
             toReplyEntity = replyService.getOne(toReplyWrapper);
-            if (toReplyEntity == null || toReplyEntity.getStatus() != 0) {
-                return Res.fail(5505, "回复已被删除，无法回复");
+            if (toReplyEntity == null || !Roles.publicCanSee(toReplyEntity.getStatus())) {
+                return ResEntity.fail(5505, "回复已被删除，无法回复");
             }
             replyEntity.setToReplyUuid(toReplyEntity.getUuid());
         }
@@ -71,42 +72,42 @@ public class ReplyController {
         replyEntity.setReplyId(CommonUtil.generateTimeId());
         replyEntity.setToReplyId(model.getToReplyId());
         replyEntity.setContent(model.getContent());
-        replyEntity.setStatus(0);
+        replyEntity.setStatus(Roles.PUBLIC_SEE);
         replyEntity.setCreateTime(System.currentTimeMillis());
         replyEntity.setLikeCount(0);
         boolean save = replyService.save(replyEntity);
-        return save ? Res.ok(replyEntity) : Res.fail(5506, ErrorMsg.DATABASE_ERROR);
+        return save ? ResEntity.ok(replyEntity) : ResEntity.fail(5506, ErrorMsg.DATABASE_ERROR);
     }
 
     @ApiOperation(value = "获取评论下的回复列表")
     @GetMapping("")
-    public Res<PageWrapperDto<ReplyEntity>> getReplies(QueryPageModel model) throws Exp {
+    public ResEntity<PageWrapper<ReplyEntity>> getReplies(QueryPageModel model) {
         LambdaQueryWrapper<ReplyEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ReplyEntity::getCommentId, model.getQ());
-        wrapper.eq(ReplyEntity::getStatus, 0);
+        wrapper.eq(ReplyEntity::getStatus, Roles.PUBLIC_SEE);
         wrapper.orderBy(true, model.isAsc(), ReplyEntity::getId);
         Page<ReplyEntity> page = new Page<>(model.getCurrentIndex(), model.getCurrentCount());
         Page<ReplyEntity> topicEntityPage = replyService.page(page, wrapper);
-        return Res.ok(PageWrapperDto.wrap(topicEntityPage));
+        return ResEntity.ok(PageWrapper.wrap(topicEntityPage));
     }
 
     @ApiOperation(value = "删除回复")
     @DeleteMapping("/{id}")
-    public Res<Boolean> deleteReply(@PathVariable("id") String replyId) throws Exp {
+    public ResEntity<Boolean> deleteReply(@PathVariable("id") String replyId) throws ErrorException {
         LambdaQueryWrapper<ReplyEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ReplyEntity::getReplyId, replyId);
         ReplyEntity replyEntity = replyService.getOne(wrapper);
-        if (ObjectUtil.isNull(replyEntity) || replyEntity.getStatus() == 3 || replyEntity.getStatus() == -3) {
-            return Res.ok();
+        if (ObjectUtil.isNull(replyEntity) || Objects.equals(replyEntity.getStatus(), Roles.SELF_DELETE) || Objects.equals(replyEntity.getStatus(), Roles.ADMIN_DELETE)) {
+            return ResEntity.ok();
         }
         if (Roles.isSuperAdmin()) {
-            replyEntity.setStatus(-3);
-            return Res.ok(replyService.updateById(replyEntity));
+            replyEntity.setStatus(Roles.ADMIN_DELETE);
+            return ResEntity.ok(replyService.updateById(replyEntity));
         } else if (LoginUser.isSelf(replyEntity.getUuid())) {
-            replyEntity.setStatus(3);
-            return Res.ok(replyService.updateById(replyEntity));
+            replyEntity.setStatus(Roles.SELF_DELETE);
+            return ResEntity.ok(replyService.updateById(replyEntity));
         }
-        return Res.fail(5501, ErrorMsg.RESOURCE_LOCKED);
+        return ResEntity.fail(5501, ErrorMsg.RESOURCE_LOCKED);
     }
 
 

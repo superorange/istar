@@ -3,8 +3,8 @@ package com.example.istar.handler;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.example.istar.entity.UserEntity;
-import com.example.istar.utils.Exp;
-import com.example.istar.utils.ErrorMsg;
+import com.example.istar.utils.response.ErrorException;
+import com.example.istar.utils.response.ErrorMsg;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -85,23 +85,31 @@ public class LoginUser implements UserDetails, Serializable {
         return null;
     }
 
-    public static LoginUser getCurrentUserAndThrow() throws Exp {
+    public static LoginUser getCurrentUserAndThrow() throws ErrorException {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof LoginUser) {
             return (LoginUser) principal;
         }
-        throw Exp.from(HttpStatus.UNAUTHORIZED, 40100, ErrorMsg.UNAUTHORIZED);
+        throw ErrorException.wrap(HttpStatus.UNAUTHORIZED, ErrorMsg.UNAUTHORIZED);
     }
 
-    public static boolean isSelf(String uuid) throws Exp {
+    public static boolean isSelf(String uuid) throws ErrorException {
         return uuid != null && LoginUser.getUuidAndThrow().equals(uuid);
     }
 
-    public static String getUuidAndThrow() throws Exp {
+    public static String getUuidAndThrow() throws ErrorException {
         String uuid = getCurrentUserAndThrow().getUserEntity().getUuid();
         if (ObjectUtil.isNull(uuid)) {
-            throw Exp.from(HttpStatus.UNAUTHORIZED, 40101, ErrorMsg.UNAUTHORIZED);
+            throw ErrorException.wrap(HttpStatus.UNAUTHORIZED, ErrorMsg.UNAUTHORIZED);
         }
         return uuid;
+    }
+
+    public static String getUuid() {
+        LoginUser user = getCurrentUser();
+        if (user != null) {
+            return user.getUserEntity().getUuid();
+        }
+        return null;
     }
 }

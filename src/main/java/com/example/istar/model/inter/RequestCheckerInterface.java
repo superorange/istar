@@ -1,8 +1,8 @@
 package com.example.istar.model.inter;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.example.istar.utils.Exp;
-import com.example.istar.utils.ErrorMsg;
+import com.example.istar.utils.response.ErrorException;
+import com.example.istar.utils.response.ErrorMsg;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.http.HttpStatus;
 
@@ -22,11 +22,11 @@ public interface RequestCheckerInterface {
     /**
      * 检查是否正确
      *
-     * @throws Exp 抛出参数异常
+     * @throws ErrorException 抛出参数异常
      */
-    default void check() throws Exp {
+    default void check() throws ErrorException {
         if (!isCorrect()) {
-            throw Exp.from(HttpStatus.BAD_REQUEST,4000, ErrorMsg.PARAM_ERROR);
+            throw ErrorException.wrap(HttpStatus.BAD_REQUEST, ErrorMsg.BAD_REQUEST);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.istar.utils;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import io.minio.*;
 import io.minio.http.Method;
 import io.minio.messages.Bucket;
@@ -56,6 +57,14 @@ public class MinioUtil {
     public String getBasisUrl() {
         return endpoint + SEPARATOR + bucketName + SEPARATOR;
     }
+
+    public String assembleUrl(String tag) {
+        if (StrUtil.isEmpty(tag)) {
+            return null;
+        }
+        return endpoint + SEPARATOR + bucketName + SEPARATOR + tag;
+    }
+
 
     /**
      * 启动SpringBoot容器的时候初始化Bucket
@@ -277,13 +286,14 @@ public class MinioUtil {
         String fileName = FileUtil.getName(file.getOriginalFilename());
         String fileId;
         if (fileName == null) {
-            throw Exp.from(HttpStatus.BAD_REQUEST, 6001, ErrorMsg.PARAM_ERROR);
-        }
-        String[] split = fileName.split("\\.");
-        if (split.length > 1) {
-            fileId = CommonUtil.generateTimeId(split[0]) + "." + split[1];
+            fileId = CommonUtil.generateTimeId();
         } else {
-            fileId = CommonUtil.generateTimeId(fileName);
+            String[] split = fileName.split("\\.");
+            if (split.length > 1) {
+                fileId = CommonUtil.generateTimeId(split[0]) + "." + split[1];
+            } else {
+                fileId = CommonUtil.generateTimeId(fileName);
+            }
         }
         InputStream inputStream = file.getInputStream();
         ObjectWriteResponse objectWriteResponse = minioClient.putObject(
@@ -293,7 +303,7 @@ public class MinioUtil {
                         .contentType(file.getContentType())
                         .stream(inputStream, inputStream.available(), -1)
                         .build());
-        return new MinioUploadWrapper(objectWriteResponse, fileName, fileId);
+        return new MinioUploadWrapper(objectWriteResponse, fileId);
     }
 
     /**
@@ -456,15 +466,7 @@ public class MinioUtil {
     @Data
     public static class MinioUploadWrapper {
         private ObjectWriteResponse objectWriteResponse;
-        private String fileOriginName;
         private String fileBucketName;
-
-        public String getFileId() {
-            if (fileBucketName.contains(".")) {
-                return fileBucketName.substring(0, fileBucketName.lastIndexOf("."));
-            }
-            return fileBucketName;
-        }
 
     }
 }

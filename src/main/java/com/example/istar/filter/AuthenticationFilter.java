@@ -2,11 +2,12 @@ package com.example.istar.filter;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.example.istar.common.Const;
-import com.example.istar.common.PermitUrl;
+
 import com.example.istar.common.RedisConst;
 import com.example.istar.handler.LoginUser;
 import com.example.istar.utils.SafeUtil;
 import com.example.istar.utils.RedisUtil;
+import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,11 +36,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         System.out.println("AuthenticationFilter--RUNNING");
-        ///如果是PERMIT_URL接口就不要认证了
-        if (Arrays.stream(PermitUrl.PERMIT_URL).anyMatch(s -> s.equals(request.getRequestURI()))) {
-            filterChain.doFilter(request, response);
-            return;
-        }
         String token = request.getHeader(Const.Authorization);
         if (ObjectUtil.isNotEmpty(token)) {
             try {

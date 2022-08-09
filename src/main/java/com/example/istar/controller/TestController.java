@@ -2,7 +2,7 @@ package com.example.istar.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.example.istar.service.impl.UserServiceImpl;
-import com.example.istar.utils.Res;
+import com.example.istar.utils.response.ResEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -33,7 +33,7 @@ public class TestController {
 
     @GetMapping("/test3")
     @ResponseBody
-    public Res<?> test3(HttpServletRequest request) throws IOException {
+    public ResEntity<?> test3(HttpServletRequest request) throws IOException {
         ServletInputStream inputStream = request.getInputStream();
         byte[] bytes = new byte[1024];
         int len = 0;
@@ -42,7 +42,7 @@ public class TestController {
             stringBuilder.append(new String(bytes, 0, len));
         }
 
-        return Res.ok(JSON.parse(stringBuilder.toString()));
+        return ResEntity.ok(JSON.parse(stringBuilder.toString()));
     }
 
 }

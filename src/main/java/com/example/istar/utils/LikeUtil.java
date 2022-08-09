@@ -9,6 +9,8 @@ import com.example.istar.entity.TopicEntity;
 import com.example.istar.service.impl.CommentServiceImpl;
 import com.example.istar.service.impl.ReplyServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
+import com.example.istar.utils.response.ErrorException;
+import com.example.istar.utils.response.ErrorMsg;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +30,7 @@ public class LikeUtil {
     @Resource
     private ReplyServiceImpl replyService;
 
-    public void autoIncrementTopicLike(String id) throws Exp {
+    public void autoIncrementTopicLike(String id) throws ErrorException {
         String key = RedisConst.TOPIC_LIKE_BY_TOPIC_ID + id;
         synchronized (SyncCacheUtil.getSyncKey(key)) {
             Integer like = redisUtil.getCacheObject(key);
@@ -39,7 +41,7 @@ public class LikeUtil {
                 wrapper.eq(TopicEntity::getStatus, Roles.PUBLIC_SEE);
                 TopicEntity serviceOne = topicService.getOne(wrapper);
                 if (serviceOne == null) {
-                    throw Exp.from(HttpStatus.NOT_FOUND, 4005, ErrorMsg.NOT_FOUND);
+                    throw ErrorException.wrap(HttpStatus.NOT_FOUND, ErrorMsg.NOT_FOUND);
                 }
                 like = serviceOne.getLikeCount();
             }
@@ -74,7 +76,7 @@ public class LikeUtil {
      *
      * @param id 评论ID
      */
-    public void autoIncrementCommentLike(String id) throws Exp {
+    public void autoIncrementCommentLike(String id) throws ErrorException {
         String key = RedisConst.COMMENT_LIKE_BY_COMMENT_ID + id;
         synchronized (SyncCacheUtil.getSyncKey(key)) {
             Integer like = redisUtil.getCacheObject(key);
@@ -85,7 +87,7 @@ public class LikeUtil {
                 wrapper.eq(CommentEntity::getStatus, Roles.PUBLIC_SEE);
                 CommentEntity serviceOne = commentService.getOne(wrapper);
                 if (serviceOne == null) {
-                    throw Exp.from(HttpStatus.NOT_FOUND, 4003, ErrorMsg.NOT_FOUND);
+                    throw ErrorException.wrap(HttpStatus.NOT_FOUND, ErrorMsg.NOT_FOUND);
                 }
                 like = serviceOne.getLikeCount();
             }
@@ -93,7 +95,7 @@ public class LikeUtil {
         }
     }
 
-    public void autoIncrementReplyLike(String id) throws Exp {
+    public void autoIncrementReplyLike(String id) throws ErrorException {
         String key = RedisConst.REPLAY_LIKE_BY_COMMENT_ID + id;
         synchronized (SyncCacheUtil.getSyncKey(key)) {
             Integer like = redisUtil.getCacheObject(key);
@@ -104,7 +106,7 @@ public class LikeUtil {
                 wrapper.eq(ReplyEntity::getStatus, Roles.PUBLIC_SEE);
                 ReplyEntity serviceOne = replyService.getOne(wrapper);
                 if (serviceOne == null) {
-                    throw Exp.from(HttpStatus.NOT_FOUND, 4004, ErrorMsg.NOT_FOUND);
+                    throw ErrorException.wrap(HttpStatus.NOT_FOUND, ErrorMsg.NOT_FOUND);
                 }
                 like = serviceOne.getLikeCount();
             }
@@ -151,7 +153,11 @@ public class LikeUtil {
      */
     public Integer getTopicLike(String id) {
         String key = RedisConst.TOPIC_LIKE_BY_TOPIC_ID + id;
-        return redisUtil.getCacheObject(key);
+        Integer result = redisUtil.getCacheObject(key);
+        if (result == null) {
+            return 0;
+        }
+        return result;
 
     }
 
@@ -161,7 +167,12 @@ public class LikeUtil {
      */
     public Integer getCommentLike(String id) {
         String key = RedisConst.COMMENT_LIKE_BY_COMMENT_ID + id;
-        return redisUtil.getCacheObject(key);
+        Integer result = redisUtil.getCacheObject(key);
+        if (result == null) {
+            return 0;
+        }
+        return result;
+
 
     }
 

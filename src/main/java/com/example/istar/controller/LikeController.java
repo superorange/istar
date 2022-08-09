@@ -2,9 +2,9 @@ package com.example.istar.controller;
 
 import com.example.istar.service.impl.CommentServiceImpl;
 import com.example.istar.service.impl.TopicServiceImpl;
-import com.example.istar.utils.Exp;
+import com.example.istar.utils.response.ErrorException;
 import com.example.istar.utils.LikeUtil;
-import com.example.istar.utils.Res;
+import com.example.istar.utils.response.ResEntity;
 import com.example.istar.utils.RedisUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,23 +34,23 @@ public class LikeController {
 
     @ApiOperation("添加主题的喜欢")
     @PostMapping("/topic/{id}")
-    public Res addTopicLike(@PathVariable String id) throws Exp {
+    public ResEntity<Void> addTopicLike(@PathVariable String id) throws ErrorException {
         likeUtil.autoIncrementTopicLike(id);
-        return Res.ok();
+        return ResEntity.ok();
     }
 
     @ApiOperation("添加评论的喜欢")
     @PostMapping("/comment/{id}")
-    public Res addCommentLike(@PathVariable String id) throws Exp {
+    public ResEntity<Void> addCommentLike(@PathVariable String id) throws ErrorException {
         likeUtil.autoIncrementCommentLike(id);
-        return Res.ok();
+        return ResEntity.ok();
     }
 
     @ApiOperation("添加回复的喜欢")
     @PostMapping("/replay/{id}")
-    public Res addReplayLike(@PathVariable String id) throws Exp {
+    public ResEntity<Void> addReplayLike(@PathVariable String id) throws ErrorException {
         likeUtil.autoIncrementReplyLike(id);
-        return Res.ok();
+        return ResEntity.ok();
     }
 
 

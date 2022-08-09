@@ -1,3 +1,4 @@
+drop database if exists istar;
 create database if not exists istar;
 use istar;
 DROP TABLE IF EXISTS `t_user`;
@@ -13,6 +14,7 @@ CREATE TABLE if not exists `t_user`
     `uuid`        varchar(64)  NOT NULL comment '用户识别码',
     `gender`      tinyint      NULL     DEFAULT NULL comment '性别0女1男',
     `nick_name`   varchar(64)  NULL     DEFAULT NULL comment '昵称',
+    `signature`   varchar(128) NULL     DEFAULT NULL comment '个性签名',
     `mobile`      varchar(64)  NULL     DEFAULT NULL comment '手机号',
     `username`    varchar(128) NULL     DEFAULT NULL comment '用户名',
     `email`       varchar(128) NULL     DEFAULT NULL comment '邮箱',
@@ -40,17 +42,17 @@ CREATE TABLE if not exists `t_user`
 #用户帖子表
 create table if not exists `t_topic`
 (
-    `id`          bigint      not null auto_increment comment '主键',
-    `uuid`        varchar(64) not null comment '用户识别码',
-    `topic_id`    varchar(64) not null comment '文章id',
-    `picture_id_list`      text        null     default null comment '图片ID列表，用分号分隔',
-    `video_id_list`    text        null     default null comment '视频ID列表，用分号分隔',
-    `title`       text        null     default null comment '标题',
-    `content`     text        null     default null comment '内容',
-    `status`      tinyint     not null default 0 comment '状态0正常,-1禁用,1删除',
-    `like_count`  int         not null default 0 comment '点赞数',
-    `create_time` bigint      not null comment '创建时间',
-    `modify_time` bigint      not null comment '修改时间',
+    `id`              bigint      not null auto_increment comment '主键',
+    `uuid`            varchar(64) not null comment '用户识别码',
+    `topic_id`        varchar(64) not null comment '文章id',
+    `picture_id_list` text        null     default null comment '图片ID列表，用分号分隔',
+    `video_id_list`   text        null     default null comment '视频ID列表，用分号分隔',
+    `title`           text        null     default null comment '标题',
+    `content`         text        null     default null comment '内容',
+    `status`          tinyint     not null default 0 comment '状态0正常,-1禁用,1删除',
+    `like_count`      int         not null default 0 comment '点赞数',
+    `create_time`     bigint      not null comment '创建时间',
+    `modify_time`     bigint      not null comment '修改时间',
     primary key (`id`),
     unique key `topic_id` (`topic_id`),
     index `uuid` (`uuid`)
@@ -100,14 +102,12 @@ create table if not exists `t_reply`
 
 create table if not exists `t_picture`
 (
-    `id`          bigint       not null auto_increment comment '主键',
-    `uuid`        varchar(64)  null     default null comment '用户识别码,可以为空',
-    `pic_id`      varchar(64)  not null comment '图片id',
-    `pic_url`     varchar(256) not null comment '图片地址',
-    `pic_name`    varchar(64)  not null comment '文件名',
-    `pic_type`    varchar(64)  not null comment '文件类型',
-    `status`      tinyint      not null default 0 comment '状态0正常，-1禁用,1删除',
-    `create_time` bigint       not null comment '创建时间',
+    `id`          bigint      not null auto_increment comment '主键',
+    `uuid`        varchar(64) null     default null comment '用户识别码,可以为空',
+    `pic_id`      varchar(64) not null comment '图片id',
+    `pic_type`    varchar(64) not null comment '文件类型',
+    `status`      tinyint     not null default 0 comment '状态0正常，-1禁用,1删除',
+    `create_time` bigint      not null comment '创建时间',
     primary key (`id`),
     unique key `pic_id` (`pic_id`),
     index `uuid` (`uuid`)

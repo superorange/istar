@@ -31,6 +31,19 @@ public class UserUtil {
 
     }
 
+    public void setAvatarByUuid(String uuid, String avatar) {
+        if (avatar == null) {
+            return;
+        }
+        redisUtil.setCacheObject(RedisConst.USER_AVATAR_BY_UUID + uuid, avatar);
+    }
+
+    public void setNickNameByUuid(String uuid, String nickName) {
+        if (nickName == null) {
+            return;
+        }
+        redisUtil.setCacheObject(RedisConst.USER_NICK_NAME_BY_UUID + uuid, nickName);
+    }
 
     public String getNickNameByUuid(String uuid) {
         String re = redisUtil.getCacheObject(RedisConst.USER_NICK_NAME_BY_UUID + uuid);

@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
 
-import com.example.istar.utils.LocalDateTimeSerializer;
-import com.example.istar.utils.StatusSerializer;
+import com.example.istar.utils.serializer.LocalDateTimeSerializer;
+import com.example.istar.utils.serializer.StatusSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;

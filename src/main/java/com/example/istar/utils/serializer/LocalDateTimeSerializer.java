@@ -1,4 +1,4 @@
-package com.example.istar.utils;
+package com.example.istar.utils.serializer;
 
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;

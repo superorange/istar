@@ -10,8 +10,8 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
-import com.example.istar.utils.LocalDateTimeSerializer;
-import com.example.istar.utils.StatusSerializer;
+import com.example.istar.utils.serializer.LocalDateTimeSerializer;
+import com.example.istar.utils.serializer.StatusSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -27,7 +27,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("t_topic")
+@TableName(value = "t_topic",autoResultMap = true)
 @ApiModel(value = "Topic对象", description = "")
 public class TopicEntity implements Serializable {
 

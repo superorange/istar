@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import com.example.istar.utils.LocalDateTimeSerializer;
+import com.example.istar.utils.serializer.LocalDateTimeSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -44,6 +44,9 @@ public class UserEntity implements Serializable {
 
     @ApiModelProperty("昵称")
     private String nickName;
+
+    @ApiModelProperty("签名")
+    private String signature;
 
     @ApiModelProperty("手机号")
     private String mobile;

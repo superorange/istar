@@ -12,13 +12,13 @@ import lombok.Data;
 @Data
 public class CodeModel implements RequestCheckerInterface {
     @ApiModelProperty(value = "验证码发送地址，手机、邮箱")
-    String data;
+    String key;
     @ApiModelProperty(value = "校验码")
     String checkId;
 
     @Override
     @JSONField(serialize = false)
     public boolean isCorrect() {
-        return RegexTool.isEmailOrMobile(data);
+        return RegexTool.isEmailOrMobile(key);
     }
 }

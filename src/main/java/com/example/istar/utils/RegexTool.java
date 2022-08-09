@@ -1,5 +1,6 @@
 package com.example.istar.utils;
 
+import cn.hutool.core.util.StrUtil;
 import org.springframework.util.ObjectUtils;
 
 import java.util.regex.Pattern;
@@ -21,11 +22,11 @@ public class RegexTool {
      * 判断email格式是否正确
      */
     public static boolean isEmail(String email) {
-        return email.matches("^([a-zA-Z0-9_\\-.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$");
+        return StrUtil.isNotEmpty(email) &&email.matches("^([a-zA-Z0-9_\\-.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$");
     }
 
     public static boolean isEmailOrMobile(String key) {
-        return isEmail(key) || isMobiles(key);
+        return StrUtil.isNotEmpty(key) && (isEmail(key) || isMobiles(key));
     }
 
 

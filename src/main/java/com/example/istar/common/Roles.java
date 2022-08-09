@@ -1,7 +1,7 @@
 package com.example.istar.common;
 
 import com.example.istar.handler.LoginUser;
-import com.example.istar.utils.Exp;
+import com.example.istar.utils.response.ErrorException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -101,9 +101,9 @@ public interface Roles {
      * 判断是否是超级管理员
      *
      * @return boolean
-     * @throws Exp 抛出异常
+     * @throws ErrorException 抛出异常
      */
-    static boolean isSuperAdmin() throws Exp {
+    static boolean isSuperAdmin() throws ErrorException {
         return SYS_SUPER_ADMIN.equals(LoginUser.getCurrentUserAndThrow().getUserEntity().getRoles());
     }
 
