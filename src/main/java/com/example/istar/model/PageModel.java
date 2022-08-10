@@ -2,17 +2,39 @@ package com.example.istar.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * @author tian
  */
 @Setter
+
 @ApiModel(value = "分页查询入参")
 public class PageModel {
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
+    }
+
+    public String getCount() {
+        return count;
+    }
+
+    public void setCount(String count) {
+        this.count = count;
+    }
+
+    public String getOrder() {
+        return order;
+    }
+
+    public void setOrder(String order) {
+        this.order = order;
+    }
+
     @ApiModelProperty(value = "页数", dataType = "Integer")
     private String index;
     @ApiModelProperty(value = "数量", dataType = "Integer")

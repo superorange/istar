@@ -56,6 +56,7 @@ public class UserController {
     @Resource
     private UserUtil userUtil;
 
+
     @PostMapping("/login")
     @ApiOperation(value = "注册/登录", notes = "用户注册,或者登录")
     public ResEntity<UserWrapperDto> login(@RequestBody LoginModel model) throws ErrorException {
@@ -113,7 +114,7 @@ public class UserController {
 
 
     @ApiOperation(value = "获取用户列表", notes = "获取用户列表")
-    @PreAuthorize("@userExpression.isSuperAdmin()")
+//    @PreAuthorize("@userExpression.isSuperAdmin()")
     @GetMapping("")
     public ResEntity<PageWrapper<UserEntity>> getUsers(PageModel pageModel) {
         LambdaQueryWrapper<UserEntity> queryWrapper = new LambdaQueryWrapper<>();
@@ -146,9 +147,10 @@ public class UserController {
             return ResEntity.fail(ErrorMsg.USER_NOT_EXIST);
         }
         if (model.getAvatar() != null) {
-            MinioUtil.MinioUploadWrapper minioUploadWrapper = minioUtil.uploadFile(model.getAvatar(),minIoClientConfig.getPictureBucketName());
+            MinioUtil.MinioUploadWrapper minioUploadWrapper = minioUtil.uploadFile(model.getAvatar(), minIoClientConfig.getPictureBucketName());
             userEntity.setAvatar(minioUploadWrapper.getFileBucketName());
         }
+        userEntity.setSignature(model.getSignature());
         userEntity.setNickName(model.getNickName());
         userEntity.setModifyTime(System.currentTimeMillis());
         boolean id = userService.updateById(userEntity);
