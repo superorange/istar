@@ -6,7 +6,6 @@ import com.example.istar.common.Const;
 import com.example.istar.common.Roles;
 import com.example.istar.entity.PictureEntity;
 import com.example.istar.service.impl.PicturesServiceImpl;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -43,13 +42,20 @@ public class PictureUtil {
         return wrappers.stream().map(f -> {
             PictureEntity pictureEntity = new PictureEntity();
             pictureEntity.setUuid(uuid);
-            pictureEntity.setPicId(f.getFileBucketName());
+            pictureEntity.setPicId(f.getFileId());
+            pictureEntity.setPicFull(f.getFileBucketName());
             pictureEntity.setPicType(Const.PICTURE_TYPE_TOPIC);
-            pictureEntity.setStatus(0);
+            pictureEntity.setStatus(Roles.PUBLIC_SEE);
             pictureEntity.setCreateTime(System.currentTimeMillis());
             return pictureEntity;
         }).collect(Collectors.toList());
     }
 
 
+    public void remove(List<String> ids) {
+        HashSet<String> set = new HashSet<>(ids);
+        LambdaQueryWrapper<PictureEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(PictureEntity::getPicId, set);
+        picturesService.remove(queryWrapper);
+    }
 }

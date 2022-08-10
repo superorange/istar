@@ -1,5 +1,6 @@
 package com.example.istar.controller;
 
+import com.example.istar.configuration.MinIoClientConfig;
 import com.example.istar.utils.MinioUtil;
 import com.example.istar.utils.response.ResEntity;
 import io.swagger.annotations.Api;
@@ -20,12 +21,14 @@ import java.util.List;
 public class FileController {
     @Resource
     private MinioUtil minioUtil;
+    @Resource
+    private MinIoClientConfig minIoClientConfig;
 
     @ApiOperation(value = "minio上传测试")
     @ResponseBody
     @PostMapping("/upload")
     public ResEntity upload(@RequestParam("files") MultipartFile[] multipartFile) throws Exception {
-        List<MinioUtil.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(multipartFile);
+        List<MinioUtil.MinioUploadWrapper> uploadWrappers = minioUtil.uploadFile(multipartFile, minIoClientConfig.getBucketName());
         return ResEntity.ok(uploadWrappers);
     }
 

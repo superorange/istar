@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author tian
@@ -18,4 +18,27 @@ import java.util.List;
 @Mapper
 public interface TopicMapper extends BaseMapper<TopicEntity> {
 
+    /**
+     * 通过实体更新文章
+     *
+     * @param entity 文章实体
+     * @return Integer  更新成功的数量
+     */
+    Integer updateByEntity(TopicEntity entity);
+
+    /**
+     * 更新状态
+     *
+     * @param entity 文章实体
+     * @return Integer  更新成功的数量
+     */
+    Integer updateStatus(TopicEntity entity);
+
+    /**
+     * 更新喜欢数
+     *
+     * @param entity 文章实体
+     * @return Integer  更新成功的数量
+     */
+    Integer updateLikeCount(TopicEntity entity);
 }

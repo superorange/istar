@@ -22,4 +22,7 @@ import java.util.List;
 @Service
 public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicEntity> implements ITopicService {
 
+    public boolean updateOne(TopicEntity entity) {
+        return getBaseMapper().updateByEntity(entity) == 1;
+    }
 }

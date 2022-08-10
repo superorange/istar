@@ -10,16 +10,13 @@ import lombok.Setter;
 /**
  * @author tian
  */
-@NoArgsConstructor()
-@AllArgsConstructor()
 @Setter
-@Getter
 @ApiModel(value = "分页查询入参")
 public class PageModel {
     @ApiModelProperty(value = "页数", dataType = "Integer")
-    private Integer index;
+    private String index;
     @ApiModelProperty(value = "数量", dataType = "Integer")
-    private Integer count;
+    private String count;
     @ApiModelProperty(value = "排序方式(asc或者desc,默认降序desc)")
     private String order;
 
@@ -30,8 +27,12 @@ public class PageModel {
     @ApiModelProperty(hidden = true)
     public int getCurrentIndex() {
         int safe = 0;
-        if (index != null && index >= 0) {
-            safe = this.index;
+        try {
+            int i = Integer.parseInt(index);
+            if (i >= 0) {
+                safe = i;
+            }
+        } catch (NumberFormatException ignored) {
         }
         return safe;
     }
@@ -39,8 +40,12 @@ public class PageModel {
     @ApiModelProperty(hidden = true)
     public int getCurrentCount() {
         int safe = 30;
-        if (count != null && count >= 0) {
-            safe = this.count;
+        try {
+            int i = Integer.parseInt(count);
+            if (i >= 0) {
+                safe = i;
+            }
+        } catch (NumberFormatException ignored) {
         }
         return safe;
     }

@@ -3,6 +3,7 @@ package com.example.istar.utils;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.istar.common.Roles;
+import com.example.istar.configuration.MinIoClientConfig;
 import com.example.istar.entity.PictureEntity;
 import com.example.istar.entity.VideoEntity;
 import com.example.istar.service.impl.PicturesServiceImpl;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 public class VideoUtil {
 
     @Resource
+    private MinIoClientConfig minIoClientConfig;
+    @Resource
     private VideosServiceImpl videosService;
     @Resource
     private MinioUtil minioUtil;
@@ -33,7 +36,7 @@ public class VideoUtil {
         picturesLambdaQueryWrapper.eq(VideoEntity::getStatus, Roles.PUBLIC_SEE);
         return videosService.list(picturesLambdaQueryWrapper).stream().peek(pictures -> {
             ///添加图片地址前缀
-            pictures.setVideoUrl(minioUtil.getBasisUrl() + pictures.getVideoId());
+            pictures.setVideoUrl(minioUtil.getBasisUrl(minIoClientConfig.getVideoBucketName()) + pictures.getVideoId());
         }).collect(Collectors.toList());
     }
 }

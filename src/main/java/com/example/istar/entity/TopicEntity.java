@@ -1,10 +1,7 @@
 package com.example.istar.entity;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,7 +24,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName(value = "t_topic",autoResultMap = true)
+@TableName(value = "t_topic", autoResultMap = true)
 @ApiModel(value = "Topic对象", description = "")
 public class TopicEntity implements Serializable {
 
@@ -35,11 +32,9 @@ public class TopicEntity implements Serializable {
 
     @ApiModelProperty("主键")
     @TableId(value = "id", type = IdType.AUTO)
-    @JSONField(serialize = false)
     private Long id;
 
     @ApiModelProperty("用户识别码")
-    @JSONField(serialize = false)
     private String uuid;
 
     @ApiModelProperty("文章id")
@@ -77,5 +72,23 @@ public class TopicEntity implements Serializable {
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long modifyTime;
 
+
+    ///前端字段
+
+    @ApiModelProperty(value = "视频详细信息")
+    @TableField(exist = false)
+    private List<VideoEntity> videos;
+
+    @ApiModelProperty(value = "图片详细信息")
+    @TableField(exist = false)
+    private List<PictureEntity> pictures;
+
+    @ApiModelProperty(value = "头像地址")
+    @TableField(exist = false)
+    private String avatar;
+
+    @ApiModelProperty(value = "用户昵称")
+    @TableField(exist = false)
+    private String nickName;
 
 }

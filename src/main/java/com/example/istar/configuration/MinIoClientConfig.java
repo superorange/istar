@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.Resource;
 
+/**
+ * @author tian
+ */
 @Data
 @Component
 public class MinIoClientConfig {
@@ -21,6 +24,11 @@ public class MinIoClientConfig {
     private String secretKey;
     @Value("${minio.bucketName}")
     private String bucketName;
+    @Value("${minio.videoBucketName}")
+    private String videoBucketName;
+    @Value("${minio.pictureBucketName}")
+    private String pictureBucketName;
+
 
     @Resource
     @Lazy
@@ -42,7 +50,7 @@ public class MinIoClientConfig {
     @Bean
     MinioUtil minioUtils() {
         try {
-            return new MinioUtil(endpoint, bucketName, 20, 20, minioClient);
+            return new MinioUtil(endpoint, 20, 20, minioClient, bucketName, pictureBucketName, videoBucketName);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

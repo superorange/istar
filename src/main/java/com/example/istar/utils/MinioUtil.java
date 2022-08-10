@@ -3,6 +3,8 @@ package com.example.istar.utils;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.example.istar.utils.response.ErrorException;
+import com.example.istar.utils.response.ErrorMsg;
 import io.minio.*;
 import io.minio.http.Method;
 import io.minio.messages.Bucket;
@@ -32,7 +34,6 @@ import java.util.Optional;
 @Slf4j
 public class MinioUtil {
     private MinioClient minioClient;
-    private final String bucketName;
     private final Integer imgSize;
     private final Integer fileSize;
     private final String endpoint;
@@ -40,13 +41,14 @@ public class MinioUtil {
     private final String SEPARATOR = "/";
 
 
-    public MinioUtil(String endpoint, String bucketName, Integer imgSize, Integer fileSize, MinioClient minioClient) throws Exception {
+    public MinioUtil(String endpoint, Integer imgSize, Integer fileSize, MinioClient minioClient, String... buckets) throws Exception {
         this.endpoint = endpoint;
-        this.bucketName = bucketName;
         this.imgSize = imgSize;
         this.fileSize = fileSize;
         this.minioClient = minioClient;
-        createBucket(bucketName);
+        for (String bucketName : buckets) {
+            createBucket(bucketName);
+        }
     }
 
     /**
@@ -54,11 +56,11 @@ public class MinioUtil {
      *
      * @return
      */
-    public String getBasisUrl() {
+    public String getBasisUrl(String bucketName) {
         return endpoint + SEPARATOR + bucketName + SEPARATOR;
     }
 
-    public String assembleUrl(String tag) {
+    public String assembleUrl(String tag, String bucketName) {
         if (StrUtil.isEmpty(tag)) {
             return null;
         }
@@ -263,47 +265,41 @@ public class MinioUtil {
      *
      * @param files 文件列表
      */
-    public List<MinioUploadWrapper> uploadFile(MultipartFile[] files) throws Exception {
+    public List<MinioUploadWrapper> uploadFile(MultipartFile[] files, String bucketName) throws Exception {
         if (ObjectUtil.isEmpty(files)) {
             return null;
         }
         List<MinioUploadWrapper> list = new ArrayList<>();
 
         for (MultipartFile file : files) {
-            list.add(upload(file));
+            list.add(upload(file, bucketName));
         }
         return list;
     }
 
-    public MinioUploadWrapper uploadFile(MultipartFile file) throws Exception {
+    public MinioUploadWrapper uploadFile(MultipartFile file, String bucketName) throws Exception {
         if (ObjectUtil.isNull(file)) {
             return null;
         }
-        return upload(file);
+        return upload(file, bucketName);
     }
 
-    private MinioUploadWrapper upload(MultipartFile file) throws Exception {
+    private MinioUploadWrapper upload(MultipartFile file, String bucketName) throws Exception {
         String fileName = FileUtil.getName(file.getOriginalFilename());
-        String fileId;
         if (fileName == null) {
-            fileId = CommonUtil.generateTimeId();
-        } else {
-            String[] split = fileName.split("\\.");
-            if (split.length > 1) {
-                fileId = CommonUtil.generateTimeId(split[0]) + "." + split[1];
-            } else {
-                fileId = CommonUtil.generateTimeId(fileName);
-            }
+            throw ErrorException.wrap(HttpStatus.BAD_REQUEST, ErrorMsg.BAD_REQUEST);
         }
+        String suffix = FileUtil.getSuffix(fileName);
+        String fileBucketName = CommonUtil.generateTimeId(FileUtil.getPrefix(fileName)) + "." + suffix;
         InputStream inputStream = file.getInputStream();
         ObjectWriteResponse objectWriteResponse = minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(fileId)
+                        .object(fileBucketName)
                         .contentType(file.getContentType())
                         .stream(inputStream, inputStream.available(), -1)
                         .build());
-        return new MinioUploadWrapper(objectWriteResponse, fileId);
+        return new MinioUploadWrapper(objectWriteResponse, fileBucketName);
     }
 
     /**
@@ -408,9 +404,7 @@ public class MinioUtil {
      * @return
      */
     public void removeFiles(String bucketName, List<String> keys) {
-        List<DeleteObject> objects = new LinkedList<>();
         keys.forEach(s -> {
-            objects.add(new DeleteObject(s));
             try {
                 removeFile(bucketName, s);
             } catch (Exception e) {
@@ -467,6 +461,13 @@ public class MinioUtil {
     public static class MinioUploadWrapper {
         private ObjectWriteResponse objectWriteResponse;
         private String fileBucketName;
+
+        public String getFileId() {
+            if (fileBucketName.contains(".")) {
+                return fileBucketName.substring(0, fileBucketName.lastIndexOf("."));
+            }
+            return fileBucketName;
+        }
 
     }
 }

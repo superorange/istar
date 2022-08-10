@@ -3,4 +3,32 @@
 <!--        原符号       <        <=      >       >=       &        '        "-->
 <!--        替换符号    &lt;    &lt;=   &gt;    &gt;=   &amp;   &apos;  &quot;-->
 <mapper namespace="com.example.istar.mapper.TopicMapper">
+
+    <update id="updateByEntity" parameterType="com.example.istar.entity.TopicEntity">
+        update t_topic
+        <trim prefix="set" suffixOverrides=",">
+            <if test="content!= null">content=#{content}</if>
+            <if test="title!=null">title=#{title}</if>
+            <if test="pictureIdList!=null and pictureIdList.size()!=0">
+                picture_id_list=#{pictureIdList,typeHandler=com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler}
+            </if>
+            <if test="videoIdList!=null and videoIdList.size()!=0">
+                video_id_list=#{videoIdList,typeHandler=com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler}
+            </if>
+            <if test="modifyTime!=null">modify_time=#{modifyTime}</if>
+        </trim>
+        where topic_id = #{topicId};
+    </update>
+    <update id="updateStatus">
+        update t_topic
+        set status =#{status}
+        where topic_id = #{topicId};
+    </update>
+    <update id="updateLikeCount">
+        update t_topic
+        set like_count =#{likeCount}
+        where topic_id = #{topicId};
+    </update>
+
+
 </mapper>

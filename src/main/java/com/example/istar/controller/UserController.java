@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.istar.common.RedisConst;
 import com.example.istar.common.Roles;
+import com.example.istar.configuration.MinIoClientConfig;
 import com.example.istar.dto.impl.PageWrapper;
 import com.example.istar.dto.impl.UserWrapperDto;
 import com.example.istar.entity.UserEntity;
@@ -40,6 +41,10 @@ import java.util.Arrays;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+
+
+    @Resource
+    private MinIoClientConfig minIoClientConfig;
     @Resource
     private UserServiceImpl userService;
     @Resource
@@ -141,7 +146,7 @@ public class UserController {
             return ResEntity.fail(ErrorMsg.USER_NOT_EXIST);
         }
         if (model.getAvatar() != null) {
-            MinioUtil.MinioUploadWrapper minioUploadWrapper = minioUtil.uploadFile(model.getAvatar());
+            MinioUtil.MinioUploadWrapper minioUploadWrapper = minioUtil.uploadFile(model.getAvatar(),minIoClientConfig.getPictureBucketName());
             userEntity.setAvatar(minioUploadWrapper.getFileBucketName());
         }
         userEntity.setNickName(model.getNickName());

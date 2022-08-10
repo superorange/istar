@@ -7,13 +7,12 @@ import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author tian
  */
 @Data
-public class TopicModel implements RequestCheckerInterface {
+public class TopicUpdateModel implements RequestCheckerInterface {
     @ApiModelProperty(value = "文章标题")
     private String title;
     @ApiModelProperty(value = "文章内容")
@@ -28,6 +27,6 @@ public class TopicModel implements RequestCheckerInterface {
     @Override
     @ApiModelProperty(hidden = true)
     public boolean isCorrect() {
-        return ObjectUtil.isAllNotEmpty(this.getTitle(), this.getContent());
+        return true;
     }
 }

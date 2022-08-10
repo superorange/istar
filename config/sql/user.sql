@@ -98,13 +98,14 @@ create table if not exists `t_reply`
   default charset = UTF8MB4
   collate UTF8MB4_GENERAL_CI comment '回复表';
 
-
-
+drop table `t_picture`;
+drop table `t_topic`;
 create table if not exists `t_picture`
 (
     `id`          bigint      not null auto_increment comment '主键',
     `uuid`        varchar(64) null     default null comment '用户识别码,可以为空',
     `pic_id`      varchar(64) not null comment '图片id',
+    `pic_full`    text        not null comment '图片全称',
     `pic_type`    varchar(64) not null comment '文件类型',
     `status`      tinyint     not null default 0 comment '状态0正常，-1禁用,1删除',
     `create_time` bigint      not null comment '创建时间',

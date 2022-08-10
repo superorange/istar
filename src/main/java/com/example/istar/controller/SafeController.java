@@ -26,13 +26,13 @@ public class SafeController {
 
     @PostMapping("/check")
     @ApiOperation(value = "动态检查，生成checkId去发送验证码")
-    public ResEntity<CheckModel> safeCheck(@RequestParam String data) {
+    public ResEntity<CheckModel> safeCheck(@RequestParam String key) {
         //TODO 后面在写安全计划，现在统统不安全
         //1,如果安全，直接放行
         //2,不安全，需要滑块验证
         //不安全情况下，先判断redis里面是否有缓存
         CheckModel checkModel = new CheckModel(CommonUtil.generateTimeId());
-        redisUtil.setCacheObject(RedisConst.AUTH_CID_BY_KEY + data, checkModel.getCheckId());
+        redisUtil.setCacheObject(RedisConst.AUTH_CID_BY_KEY + key, checkModel.getCheckId());
         return ResEntity.ok(checkModel);
     }
 

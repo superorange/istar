@@ -46,7 +46,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<List<HashMap<String, Object>>> handleAccessExp(BindException exception) {
+    public ResponseEntity<ErrorEntity> handleAccessExp(BindException exception) {
+        ErrorEntity errorEntity = ErrorEntity.from(exception);
         ArrayList<HashMap<String, Object>> body = new ArrayList<>();
         for (FieldError error : exception.getFieldErrors()) {
             HashMap<String, Object> mapper = new HashMap<>(2);
@@ -54,7 +55,8 @@ public class GlobalExceptionHandler {
             mapper.put("msg", error.getDefaultMessage());
             body.add(mapper);
         }
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).contentType(MediaType.APPLICATION_JSON).body(body);
+        errorEntity.setData(body);
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).contentType(MediaType.APPLICATION_JSON).body(errorEntity);
     }
 
     @ExceptionHandler(Exception.class)

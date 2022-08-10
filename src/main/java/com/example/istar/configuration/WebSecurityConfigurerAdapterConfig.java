@@ -53,7 +53,7 @@ public class WebSecurityConfigurerAdapterConfig extends WebSecurityConfigurerAda
         http.authorizeRequests()
                 .antMatchers("/code/**").permitAll()
                 .antMatchers("/user/login").permitAll()
-                .antMatchers("/safe/check").permitAll()
+                .antMatchers("/auth/check").permitAll()
                 .antMatchers(HttpMethod.POST).authenticated()
                 .antMatchers(HttpMethod.PATCH).authenticated()
                 .antMatchers(HttpMethod.PUT).authenticated()

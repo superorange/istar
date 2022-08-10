@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 
 import com.example.istar.utils.serializer.LocalDateTimeSerializer;
-import com.example.istar.utils.serializer.MinioPicSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -42,9 +41,12 @@ public class PictureEntity implements Serializable {
 
     @ApiModelProperty("图片id")
     private String picId;
+    @ApiModelProperty("图片地址")
+    private String picFull;
 
     @ApiModelProperty("文件类型")
     private String picType;
+
 
     @ApiModelProperty(value = "状态0正常，-1禁用,1删除", dataType = "java.lang.Boolean")
     private Integer status;
@@ -53,10 +55,8 @@ public class PictureEntity implements Serializable {
     @JSONField(serializeUsing = LocalDateTimeSerializer.class)
     private Long createTime;
 
-    //TODO 为什么没有生效，一直返回null
     @ApiModelProperty(value = "图片地址")
     @TableField(exist = false)
-    @JSONField(serializeUsing = MinioPicSerializer.class)
     private String picUrl;
 
 
