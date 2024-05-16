@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class CodeController {
     @Resource
     private RedisUtil redisUtil;
+
     @Resource
     private ImageCaptchaApplication imageCaptchaApplication;
 
